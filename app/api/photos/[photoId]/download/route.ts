@@ -21,47 +21,29 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         const payload = await getPayloadClient();
 
         // 1. Fetch Photo Metadata
-        // Payload find logic
-        const photoResult = await payload.find({
-            collection: 'photos',
-            where: { r2_key: { contains: photoId } }, // Actually we generated local UUID for photoId. We should check if photoId matches Payload ID or r2_key content?
-            // Our implementation:
-            // In upload route: `photoId` (uuid) -> Saved as ID? Payload uses numbers by default for Postgres unless configured to UUID.
-            // Postgres adapter uses numerical IDs by default? Or UUIDs?
-            // Payload 3 default is numerical auto-increment usually.
-            // We need to verify if we want UUIDs.
-            // If we passed `id` field in creation, does it respect it?
-            // In my upload logic I did not pass `id` to Payload create, just `photoId` to client.
-            // Correctness Check: In upload route, I returned `photoId` which was a UUID generated there.
-            // But I did NOT save that `photoId` as the main ID in Payload implicitly. Payload generates its own ID.
-            // Fix: I should probably query by `r2_key` which contains the photoId I generated, OR better, rely on Payload ID.
-            // Let's rely on `r2_key` for finding the photo if the client sends the `photoId` part of the key.
-            // Wait, the client receives `photoId` from the upload response.
-            // If I used `photoId` from upload response, I expect to use it here.
-            // I should probably query by valid ID.
-            // Let's assume for now I query by ID if I used Payload ID, but since I generated a separate UUID,
-            // I might have a mismatch.
-            // Refactor Upload route to return Payload ID as `id` to be safe?
-            // For now, I'll search where r2_key contains the ID, which is safe enough.
-        });
-
-        // Better: In Upload Route, I should return the Payload ID.
-        // But let's assume I fix this later or assume `findByID` works if I used payload ID.
-        // Actually, let's query all photos and filter? No, inefficient.
-        // Let's try to find by r2_key since that is unique.
-        const photos = await payload.find({
-            collection: 'photos',
-            where: {
-                r2_key: {
-                    contains: photoId
+        let photo;
+        try {
+            // Try treating photoId as a direct Payload ID first
+            photo = await payload.findByID({
+                collection: 'photos',
+                id: photoId
+            });
+        } catch (e) {
+            // If failed (e.g. invalid ID format or not found), try searching by R2 key (legacy/fallback)
+            const photos = await payload.find({
+                collection: 'photos',
+                where: {
+                    r2_key: { contains: photoId }
                 }
+            });
+            if (photos.docs.length > 0) {
+                photo = photos.docs[0];
             }
-        });
+        }
 
-        if (photos.docs.length === 0) {
+        if (!photo) {
             return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
         }
-        const photo = photos.docs[0];
 
         // 2. Authorization Check
         let authorized = false;

@@ -47,27 +47,18 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
     return (
         <main>
             <Navigation />
-            <div className="container" style={{ paddingTop: '2rem' }}>
-                <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{project.title}</h1>
-                    <p style={{ color: 'var(--muted-foreground)' }}>Shared by {photographer.display_name}</p>
+            <div className="container py-12">
+                <header className="text-center mb-12">
+                    <h1 className="text-4xl font-bold mb-2">{project.title}</h1>
+                    <p className="text-muted-foreground">Shared by {photographer.display_name}</p>
                 </header>
 
-                <div className="grid">
-                    {photos.docs.map((photo) => {
-                        const r2Key = typeof photo.r2_key === 'string' ? photo.r2_key : '';
-                        const photoId = r2Key.split('/').pop()?.replace('.jpg', '') || String(photo.id);
-                        return (
-                            <div key={photo.id} style={{
-                                aspectRatio: typeof photo.width === 'number' && typeof photo.height === 'number' ? `${photo.width}/${photo.height}` : '1/1',
-                                backgroundColor: 'var(--muted)',
-                                borderRadius: 'var(--radius)',
-                                overflow: 'hidden',
-                            }}>
-                                <Photo photoId={photoId} token={token} />
-                            </div>
-                        )
-                    })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {photos.docs.map((photo) => (
+                        <div key={photo.id} className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
+                            <Photo photoId={String(photo.id)} token={token} />
+                        </div>
+                    ))}
                 </div>
             </div>
         </main>

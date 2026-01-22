@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { Navigation } from '@/components/navigation';
 import { getPayloadClient } from '@/lib/data';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { ensurePhotographer } from '@/lib/auth-sync';
 
 export const runtime = 'nodejs'; // Payload
@@ -35,28 +36,28 @@ export default async function ProjectsPage() {
     return (
         <main>
             <Navigation />
-            <div className="container" style={{ paddingTop: '2rem' }}>
-                <div className="flex items-center justify-between" style={{ marginBottom: '2rem' }}>
-                    <h1 style={{ fontSize: '2rem' }}>Projects</h1>
-                    <button className="button">New Project</button>
+            <div className="container py-8">
+                <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+                    <Link href="/dashboard/projects/new">
+                        <Button>New Project</Button>
+                    </Link>
                 </div>
 
                 {projects.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--muted-foreground)' }}>
-                        No projects found. Create one to get started.
+                    <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg">
+                        <p>No projects found. Create one to get started.</p>
                     </div>
                 ) : (
-                    <div className="grid">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         {projects.map((project) => (
-                            <Link key={project.id} href={`/dashboard/projects/${project.id}`} style={{
-                                display: 'block',
-                                padding: '1rem',
-                                border: '1px solid var(--border)',
-                                borderRadius: 'var(--radius)'
-                            }}>
-                                <div style={{ fontWeight: 'bold' }}>{project.title}</div>
-                                <div style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
-                                    /{project.slug}
+                            <Link key={project.id} href={`/dashboard/projects/${project.id}`} className="block group">
+                                <div className="p-6 border rounded-lg hover:border-primary transition-colors bg-card text-card-foreground shadow-sm">
+                                    <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">{project.title}</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">/{project.slug}</p>
+                                    <div className="mt-4 text-xs text-muted-foreground">
+                                        Created {new Date(project.createdAt).toLocaleDateString()}
+                                    </div>
                                 </div>
                             </Link>
                         ))}
