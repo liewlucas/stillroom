@@ -1,0 +1,13 @@
+name = "stillroom"
+compatibility_date = "2024-04-05"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".next"
+
+[[r2_buckets]]
+binding = "PHOTOS_BUCKET"
+bucket_name = "photos"
+preview_bucket_name = "photos-preview"
+
+# Environment variables that are safe to be public or needed at runtime
+[vars]
+NEXT_PUBLIC_DIRECTUS_URL = "PLACEHOLDER_URL"
