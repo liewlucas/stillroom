@@ -1,6 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { getAdminDirectus } from '@/lib/directus';
-import { readItem, readItems } from '@directus/sdk';
+import { getPayloadClient } from '@/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { UploadDropzone } from '@/components/upload-dropzone';
@@ -8,7 +7,7 @@ import { ShareGenerator } from '@/components/share-generator';
 import { Photo } from '@/components/photo';
 import Link from 'next/link';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -19,23 +18,26 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         redirect('/');
     }
 
-    const client = getAdminDirectus();
+    const payload = await getPayloadClient();
 
     // 1. Fetch Project
     let project;
     try {
-        project = await client.request(readItem('projects', projectId));
+        project = await payload.findByID({ collection: 'projects', id: projectId });
     } catch (e) {
         notFound();
     }
 
     // 2. Authorization (Ensure owner)
-    const photographers = await client.request(readItems('photographers', {
-        filter: { clerk_user_id: { _eq: userId } }
-    }));
+    // Check against Clerk User
+    const photographers = await payload.find({
+        collection: 'photographers',
+        where: { clerk_user_id: { equals: userId } }
+    });
 
-    if (!photographers || photographers.length === 0 || photographers[0].id !== project.photographer_id) {
-        // In real app, show 403
+    const ownerId = typeof project.photographer === 'object' ? project.photographer.id : project.photographer;
+
+    if (!photographers.docs || photographers.docs.length === 0 || photographers.docs[0].id !== ownerId) {
         return (
             <main>
                 <Navigation />
@@ -47,10 +49,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     }
 
     // 3. Fetch Photos
-    const photos = await client.request(readItems('photos', {
-        filter: { project_id: { _eq: projectId } },
-        sort: ['created_at']
-    }));
+    const result = await payload.find({
+        collection: 'photos',
+        where: { project: { equals: projectId } },
+        limit: 100,
+    });
+    const photos = result.docs;
 
     return (
         <main>
@@ -66,19 +70,28 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                         <UploadDropzone projectId={projectId} />
 
                         <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                            {photos.map((photo) => (
-                                <div key={photo.id} style={{
-                                    aspectRatio: '1/1',
-                                    backgroundColor: 'var(--muted)',
-                                    borderRadius: 'var(--radius)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    overflow: 'hidden'
-                                }}>
-                                    <Photo photoId={photo.id} />
-                                </div>
-                            ))}
+                            {photos.map((photo) => {
+                                const r2Key = typeof photo.r2_key === 'string' ? photo.r2_key : '';
+                                const photoId = r2Key.split('/').pop()?.replace('.jpg', '') || String(photo.id);
+                                // Using logic from Download route: it fetches by r2_key content.
+                                // Ideally we pass the Payload ID if download route supports it.
+                                // My download route logic: `where: { r2_key: { contains: photoId } }`.
+                                // So passing strictly the UUID inside the key works. 
+
+                                return (
+                                    <div key={photo.id} style={{
+                                        aspectRatio: '1/1',
+                                        backgroundColor: 'var(--muted)',
+                                        borderRadius: 'var(--radius)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        overflow: 'hidden'
+                                    }}>
+                                        <Photo photoId={photoId} />
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 

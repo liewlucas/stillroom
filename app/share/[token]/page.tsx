@@ -1,25 +1,25 @@
-import { getAdminDirectus } from '@/lib/directus';
-import { readItems, readItem } from '@directus/sdk';
+import { getPayloadClient } from '@/lib/data';
 import { notFound, redirect } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { Photo } from '@/components/photo';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 // /share/[token]
 export default async function SharedGalleryPage({ params }: { params: Promise<{ token: string }> }) {
     const { token } = await params;
-    const client = getAdminDirectus();
+    const payload = await getPayloadClient();
 
     // 1. Validate Token
-    const shares = await client.request(readItems('share_links', {
-        filter: { token: { _eq: token } }
-    }));
+    const shares = await payload.find({
+        collection: 'share_links',
+        where: { token: { equals: token } }
+    });
 
-    if (!shares || shares.length === 0) {
+    if (!shares.docs || shares.docs.length === 0) {
         notFound();
     }
-    const share = shares[0];
+    const share = shares.docs[0];
 
     // Check expiration
     if (share.expires_at && new Date(share.expires_at) < new Date()) {
@@ -34,18 +34,15 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
     }
 
     // 2. Fetch Project & Photos
-    const project = await client.request(readItem('projects', share.project_id));
-    const photographer = await client.request(readItem('photographers', project.photographer_id));
+    // Resolving relationships
+    const project = typeof share.project === 'object' ? share.project : await payload.findByID({ collection: 'projects', id: share.project as any });
+    const photographer = typeof project.photographer === 'object' ? project.photographer : await payload.findByID({ collection: 'photographers', id: project.photographer as any });
 
-    // User Instructions: "URL structure ... /share/[token]".
-    // It should probably redirect to /[username]/[projectSlug]?token=[token] ?
-    // Or render the gallery here.
-    // Rendering here is fine.
-
-    const photos = await client.request(readItems('photos', {
-        filter: { project_id: { _eq: project.id } },
-        sort: ['created_at']
-    }));
+    const photos = await payload.find({
+        collection: 'photos',
+        where: { project: { equals: project.id } },
+        limit: 100,
+    });
 
     return (
         <main>
@@ -57,16 +54,20 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
                 </header>
 
                 <div className="grid">
-                    {photos.map((photo) => (
-                        <div key={photo.id} style={{
-                            aspectRatio: `${photo.width}/${photo.height}`,
-                            backgroundColor: 'var(--muted)',
-                            borderRadius: 'var(--radius)',
-                            overflow: 'hidden',
-                        }}>
-                            <Photo photoId={photo.id} token={token} />
-                        </div>
-                    ))}
+                    {photos.docs.map((photo) => {
+                        const r2Key = typeof photo.r2_key === 'string' ? photo.r2_key : '';
+                        const photoId = r2Key.split('/').pop()?.replace('.jpg', '') || String(photo.id);
+                        return (
+                            <div key={photo.id} style={{
+                                aspectRatio: typeof photo.width === 'number' && typeof photo.height === 'number' ? `${photo.width}/${photo.height}` : '1/1',
+                                backgroundColor: 'var(--muted)',
+                                borderRadius: 'var(--radius)',
+                                overflow: 'hidden',
+                            }}>
+                                <Photo photoId={photoId} token={token} />
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
         </main>

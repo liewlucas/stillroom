@@ -1,60 +1,52 @@
-import { getAdminDirectus } from '@/lib/directus';
-import { readItems } from '@directus/sdk';
+import { getPayloadClient } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { Photo } from '@/components/photo';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
-// /[username]/[projectSlug]
 export default async function GalleryPage({ params }: { params: Promise<{ username: string; projectSlug: string }> }) {
     const { username, projectSlug } = await params;
 
-    const client = getAdminDirectus();
+    const payload = await getPayloadClient();
 
-    // 1. Find Photographer
-    const photographers = await client.request(readItems('photographers', {
-        filter: { username: { _eq: username } }
-    }));
+    const photographers = await payload.find({
+        collection: 'photographers',
+        where: { username: { equals: username } }
+    });
 
-    if (!photographers || photographers.length === 0) {
+    if (!photographers.docs || photographers.docs.length === 0) {
         notFound();
     }
-    const photographer = photographers[0];
+    const photographer = photographers.docs[0];
 
     // 2. Find Project
-    const projects = await client.request(readItems('projects', {
-        filter: {
-            photographer_id: { _eq: photographer.id },
-            slug: { _eq: projectSlug }
+    const projects = await payload.find({
+        collection: 'projects',
+        where: {
+            and: [
+                { photographer: { equals: photographer.id } },
+                { slug: { equals: projectSlug } }
+            ]
         }
-    }));
+    });
 
-    if (!projects || projects.length === 0) {
+    if (!projects.docs || projects.docs.length === 0) {
         notFound();
     }
-    const project = projects[0];
+    const project = projects.docs[0];
 
     // 3. Check Visibility
-    // If not public, we might need a token?
-    // The route /[username]/[projectSlug] implies public utility or authenticated view.
-    // If it is private, maybe redirect to login or show password prompt?
-    // For now, if public, show it.
     if (!project.is_public) {
-        // In a real app we'd check req authentication or session
-        // For this task, we will just render a "Private Project" message if accessed publicly without auth
-        // But wait, the user instructions say: "Clients: access galleries via share tokens".
-        // Example: photoviewer.com/share/[token] or this route?
-        // "GET /api/projects/[username]/[projectSlug]" was listed in required API routes.
-        // But the prompt also listed "/[username]/[projectSlug]" as a URL structure.
-        // Let's assume if it is NOT public, it returns 404 or 403 unless the user is the owner.
+        // Handle private (Assuming user needs authentication or token if here)
     }
 
     // 4. Fetch Photos
-    const photos = await client.request(readItems('photos', {
-        filter: { project_id: { _eq: project.id } },
-        sort: ['created_at'] // or custom order
-    }));
+    const photos = await payload.find({
+        collection: 'photos',
+        where: { project: { equals: project.id } },
+        limit: 100,
+    });
 
     return (
         <main>
@@ -69,34 +61,21 @@ export default async function GalleryPage({ params }: { params: Promise<{ userna
                     gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                     gap: '1rem'
                 }}>
-                    {photos.map((photo) => (
-                        <div key={photo.id} style={{
-                            aspectRatio: `${photo.width}/${photo.height}`,
-                            backgroundColor: 'var(--muted)',
-                            borderRadius: 'var(--radius)',
-                            overflow: 'hidden',
-                            position: 'relative'
-                        }}>
-                            {/* We need a signed URL to display the image? 
-                              R2 must never be public.
-                              So the <img src> must be a signed URL or a proxy route.
-                              Using a proxy route is better for caching and cleaner HTML.
-                              GET /api/photos/[photoId]/download?token=...
-                              Or if public, just /api/photos/[photoId]/thumbnail?
-                              
-                              Since we need to protect R2, we can't just put `custom-domain.com/key`.
-                              We will use the download route for the display source for now, 
-                              but ideally we'd generate signed URLs serverside and pass them to client.
-                              However, signed URLs expire. 60 seconds is too short for a gallery page load?
-                              "signed URLs expire in ≤ 60 seconds" -> This constraint is tight.
-                              It implies we should generate them on the fly or use a proxy.
-                              A proxy `/api/photos/[id]/view` that streams the file might be better for "Lazy image loading".
-                              
-                              For this implementation, let's create a component that fetches the URL.
-                          */}
-                            <Photo photoId={photo.id} />
-                        </div>
-                    ))}
+                    {photos.docs.map((photo) => {
+                        const r2Key = typeof photo.r2_key === 'string' ? photo.r2_key : '';
+                        const photoId = r2Key.split('/').pop()?.replace('.jpg', '') || String(photo.id);
+                        return (
+                            <div key={photo.id} style={{
+                                aspectRatio: typeof photo.width === 'number' && typeof photo.height === 'number' ? `${photo.width}/${photo.height}` : '1/1',
+                                backgroundColor: 'var(--muted)',
+                                borderRadius: 'var(--radius)',
+                                overflow: 'hidden',
+                                position: 'relative'
+                            }}>
+                                <Photo photoId={photoId} />
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
         </main>

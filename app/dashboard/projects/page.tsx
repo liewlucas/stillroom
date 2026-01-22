@@ -1,48 +1,33 @@
 import { auth } from '@clerk/nextjs/server';
 import { Navigation } from '@/components/navigation';
-import { getAdminDirectus } from '@/lib/directus';
-import { readItems } from '@directus/sdk';
+import { getPayloadClient } from '@/lib/data';
 import Link from 'next/link';
+import { ensurePhotographer } from '@/lib/auth-sync';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs'; // Payload
 
-// Ensure we don't cache this page so new projects appear immediately
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectsPage() {
     const { userId } = await auth();
     if (!userId) return null;
 
-    // Fetch projects for this user
-    // In a real scenario, we would filter by photographer_id matching the clerk_user_id
-    // For now, we'll try to fetch all projects and filter or assume user mapping logic exists
-    // Detailed mapping logic will be implemented in the next step (User Sync)
-
-    // NOTE: This will fail if DB is not set up, so wrapping in try/catch for initial scaffolding
     let projects: any[] = [];
     try {
-        const client = getAdminDirectus();
-        // We need to look up the photographer first
-        const photographers = await client.request(readItems('photographers', {
-            filter: {
-                clerk_user_id: {
-                    _eq: userId
+        const photographer = await ensurePhotographer();
+        const payload = await getPayloadClient();
+
+        const result = await payload.find({
+            collection: 'projects',
+            where: {
+                photographer: {
+                    equals: photographer.id
                 }
-            }
-        }));
+            },
+            sort: '-createdAt'
+        });
+        projects = result.docs;
 
-        const photographer = photographers[0];
-
-        if (photographer) {
-            projects = await client.request(readItems('projects', {
-                filter: {
-                    photographer_id: {
-                        _eq: photographer.id
-                    }
-                },
-                sort: ['-created_at']
-            }));
-        }
     } catch (e) {
         console.error('Failed to fetch projects', e);
     }

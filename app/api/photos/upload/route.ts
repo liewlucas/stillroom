@@ -5,10 +5,9 @@ import { r2, R2_BUCKET } from '@/lib/r2';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
-import { getAdminDirectus } from '@/lib/directus';
-import { createItem } from '@directus/sdk';
+import { getPayloadClient } from '@/lib/data';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs'; // Payload requires Node.js runtime, sadly breaks Edge goal unless adapter allows HTTP-only. 
 
 export async function POST(req: NextRequest) {
     try {
@@ -28,7 +27,7 @@ export async function POST(req: NextRequest) {
 
         // Generate unique ID for the photo
         const photoId = uuidv4();
-        const key = `photographers/${photographer.id}/projects/${projectId}/${photoId}.jpg`; // Enforce extension or keep original? Requirements say .jpg format in example, but safer to respect content type or transcode. User requirements: "photographers/{photographerId}/projects/{projectId}/{photoId}.jpg". I will strictly follow this.
+        const key = `photographers/${photographer.id}/projects/${projectId}/${photoId}.jpg`;
 
         // Generate Presigned URL
         const command = new PutObjectCommand({
@@ -38,22 +37,19 @@ export async function POST(req: NextRequest) {
             ContentLength: size,
         });
 
-        const signedUrl = await getSignedUrl(r2, command, { expiresIn: 600 }); // 10 minutes to upload
+        const signedUrl = await getSignedUrl(r2, command, { expiresIn: 600 });
 
-        // Store record in Directus (we might want to do this AFTER successful upload confirm, but for simplicity/speed we do it here or use a webhook/confirm step. Better pattern: Created status, then confirm. But for this MVP: Create pending record or just create it.)
-        // User Instructions: "Uploads handled exclusively via server routes".
-        // Actually, asking client to PUT to R2 is standard presigned pattern. 
-        // Let's creating the DB record now.
-
-        const client = getAdminDirectus();
-        await client.request(createItem('photos', {
-            id: photoId,
-            project_id: projectId,
-            r2_key: key,
-            width: width || 0,
-            height: height || 0,
-            file_size: size,
-        }));
+        const payload = await getPayloadClient();
+        await payload.create({
+            collection: 'photos',
+            data: {
+                project: projectId,
+                r2_key: key,
+                width: width || 0,
+                height: height || 0,
+                file_size: size,
+            }
+        });
 
         return NextResponse.json({
             uploadUrl: signedUrl,
