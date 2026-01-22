@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         const photo = await payload.create({
             collection: 'photos',
             data: {
-                project: projectId,
+                project: project.id,
                 r2_key,
                 width: width || 0,
                 height: height || 0,
