@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { ProjectUploader } from '@/components/project-uploader';
+import { ProjectGallery } from '@/components/project-gallery';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -80,20 +81,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8">
                     {/* Gallery Grid */}
                     <div>
-                        {photos.length === 0 ? (
-                            <div className="border-2 border-dashed rounded-xl p-12 text-center bg-muted/10">
-                                <p className="text-muted-foreground mb-4">No photos in this project yet.</p>
-                                <ProjectUploader projectId={projectId} />
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {photos.map((photo) => (
-                                    <div key={photo.id} className="aspect-square bg-muted rounded-lg overflow-hidden relative group border shadow-sm">
-                                        <Photo photoId={String(photo.id)} />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <ProjectGallery photos={photos} projectId={projectId} />
                     </div>
 
                     {/* Sidebar */}

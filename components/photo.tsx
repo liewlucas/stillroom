@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
-export function Photo({ photoId, token }: { photoId: string, token?: string }) {
+interface PhotoProps {
+    photoId: string;
+    token?: string;
+    onClick?: () => void;
+    className?: string; // Add className prop for flexibility
+}
+
+export function Photo({ photoId, token, onClick, className }: PhotoProps) {
     const [src, setSrc] = useState<string | null>(null);
-    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -25,46 +31,16 @@ export function Photo({ photoId, token }: { photoId: string, token?: string }) {
     }, [photoId, token]);
 
     if (!src) {
-        return <div style={{ width: '100%', height: '100%', minHeight: '200px', background: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>;
+        return <div className="w-full h-full min-h-[200px] bg-muted flex items-center justify-center animate-pulse"></div>;
     }
 
     return (
-        <>
-            <img
-                src={src}
-                loading="lazy"
-                alt="Gallery photo"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer', display: 'block' }}
-                onClick={() => setIsOpen(true)}
-            />
-
-            {isOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.9)',
-                    zIndex: 1000,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2rem'
-                }} onClick={() => setIsOpen(false)}>
-                    <img src={src} style={{ maxHeight: '90vh', maxWidth: '90vw', objectFit: 'contain' }} />
-                    <button style={{
-                        position: 'absolute',
-                        top: '2rem',
-                        right: '2rem',
-                        background: 'none',
-                        border: 'none',
-                        color: 'white',
-                        fontSize: '2rem',
-                        cursor: 'pointer'
-                    }}>×</button>
-                </div>
-            )}
-        </>
+        <img
+            src={src}
+            loading="lazy"
+            alt="Gallery photo"
+            className={className || "w-full h-full object-cover block cursor-pointer"}
+            onClick={onClick}
+        />
     );
 }

@@ -58,7 +58,7 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
     const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
         const newFiles = acceptedFiles.map(file => Object.assign(file, {
             preview: URL.createObjectURL(file),
-            id: Math.random().toString(36).substring(7) + Date.now()
+            id: crypto.randomUUID()
         }));
 
         setFiles(prev => [...prev, ...newFiles]);
@@ -126,7 +126,12 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
             setStatus({ status: 'optimizing', progress: 80 });
             const img = document.createElement('img');
             img.src = file.preview;
-            await new Promise((resolve) => { img.onload = resolve; });
+            await new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve; // Continue even if image load fails
+                // Safety timeout
+                setTimeout(resolve, 1000); // 1s max wait for dimensions
+            });
 
             const completeRes = await fetch('/api/photos/complete', {
                 method: 'POST',
@@ -175,7 +180,10 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
             return;
         }
 
-        await Promise.all(pendingFiles.map(file => uploadSingleFile(file)));
+        // Sequential upload to prevent hanging/race conditions
+        for (const file of pendingFiles) {
+            await uploadSingleFile(file);
+        }
 
         setIsGlobalUploading(false);
     };

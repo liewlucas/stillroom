@@ -4,11 +4,15 @@ import { LayoutGrid, Plus, FolderOpen, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-export default function DashboardLayout({
+import { currentUser } from '@clerk/nextjs/server';
+
+export default async function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const user = await currentUser();
+
     return (
         <div className="flex h-screen w-full bg-background">
             {/* Sidebar */}
@@ -47,7 +51,7 @@ export default function DashboardLayout({
                     <div className="flex items-center gap-3">
                         <UserButton afterSignOutUrl="/" />
                         <div className="text-sm">
-                            <p className="font-medium">My Account</p>
+                            <p className="font-medium">{user?.firstName || 'User'} {user?.lastName}</p>
                         </div>
                     </div>
                 </div>
