@@ -36,10 +36,24 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
     const [uploadStatuses, setUploadStatuses] = useState<Record<string, UploadStatus>>({});
     const [isGlobalUploading, setIsGlobalUploading] = useState(false);
 
-    // Clean up previews
     useEffect(() => {
         return () => files.forEach(file => URL.revokeObjectURL(file.preview));
     }, [files]);
+
+    useEffect(() => {
+        if (!open) {
+            // Wait for animation or immediate clear? Immediate is safer for "next open"
+            // But we might want to delay slightly if there is a closing animation,
+            // however, clearing data typically doesn't hurt the closing animation unless it displays that data.
+            // Let's clear immediately to be safe, or we can use a small timeout if needed.
+            // Actually, for better UX, let's wait a tiny bit so the user doesn't see content vanish *while* it's fading out.
+            const t = setTimeout(() => {
+                setFiles([]);
+                setUploadStatuses({});
+            }, 300); // 300ms is typical dialog transition
+            return () => clearTimeout(t);
+        }
+    }, [open]);
 
     const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
         const newFiles = acceptedFiles.map(file => Object.assign(file, {
@@ -135,6 +149,23 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
         }
     };
 
+    // Monitor upload completion
+    useEffect(() => {
+        if (!isGlobalUploading && files.length > 0) {
+            const allCompleted = files.every(f => uploadStatuses[f.id]?.status === 'completed');
+            if (allCompleted) {
+                toast.success('Upload complete');
+                router.refresh();
+                // Short delay to let user see the green checks
+                const t = setTimeout(() => {
+                    setOpen(false);
+                    // The other useEffect will clear the files/statuses on close
+                }, 500);
+                return () => clearTimeout(t);
+            }
+        }
+    }, [isGlobalUploading, files, uploadStatuses, router]);
+
     const handleStartUpload = async () => {
         setIsGlobalUploading(true);
         const pendingFiles = files.filter(f => uploadStatuses[f.id]?.status === 'pending');
@@ -147,17 +178,6 @@ export function ProjectUploader({ projectId }: { projectId: string }) {
         await Promise.all(pendingFiles.map(file => uploadSingleFile(file)));
 
         setIsGlobalUploading(false);
-
-        // If all completed, refresh page and maybe close modal after delay
-        const allCompleted = files.every(f => uploadStatuses[f.id]?.status === 'completed');
-        if (allCompleted) {
-            toast.success('Upload complete');
-            router.refresh();
-            setTimeout(() => {
-                setOpen(false);
-                setFiles([]);
-            }, 1000);
-        }
     };
 
     return (
