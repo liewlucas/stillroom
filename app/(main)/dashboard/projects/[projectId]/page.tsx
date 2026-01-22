@@ -6,7 +6,8 @@ import { ShareGenerator } from '@/components/share-generator';
 import { Photo } from '@/components/photo';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Upload, Settings } from 'lucide-react';
+import { ArrowLeft, Settings } from 'lucide-react';
+import { ProjectUploader } from '@/components/project-uploader';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     if (!photographers.docs || photographers.docs.length === 0 || photographers.docs[0].id !== ownerId) {
         return (
             <main>
-                <div className="container py-20 text-center">
+                <div className="w-full px-10 py-20 text-center">
                     <h1 className="text-2xl font-bold text-destructive">Unauthorized</h1>
                     <p className="text-muted-foreground mt-2">You do not have permission to view this project.</p>
                     <Link href="/dashboard/projects" className="mt-4 inline-block">
@@ -62,8 +63,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
 
     return (
         <main>
-
-            <div className="container py-8">
+            <div className="w-full px-10 py-10">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
@@ -73,11 +73,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                         <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link href={`/dashboard/projects/${projectId}/upload`}>
-                            <Button>
-                                <Upload className="w-4 h-4 mr-2" /> Upload Photos
-                            </Button>
-                        </Link>
+                        <ProjectUploader projectId={projectId} />
                     </div>
                 </div>
 
@@ -85,34 +81,17 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                     {/* Gallery Grid */}
                     <div>
                         {photos.length === 0 ? (
-                            <div className="border-2 border-dashed rounded-xl p-12 text-center">
+                            <div className="border-2 border-dashed rounded-xl p-12 text-center bg-muted/10">
                                 <p className="text-muted-foreground mb-4">No photos in this project yet.</p>
-                                <Link href={`/dashboard/projects/${projectId}/upload`}>
-                                    <Button variant="secondary">Upload First Photo</Button>
-                                </Link>
+                                <ProjectUploader projectId={projectId} />
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {photos.map((photo) => {
-                                    // Robust ID extraction
-                                    const r2Key = typeof photo.r2_key === 'string' ? photo.r2_key : '';
-                                    // If r2_key is "projects/uuid/filename.jpg", we want the filename or just unique ID
-                                    // The Photo component currently takes "photoId" and calls /api/photos/[photoId]/download
-                                    // The download route (which we refactored) expects the ID to be the Payload ID or the r2 key part?
-                                    // Checking previous download route summary: "Refactored to use Payload... and R2 signed URLs"
-                                    // I'll stick to passing the ID, assuming Photo component works with it.
-                                    // Actually the existing code did `r2Key.split('/').pop()...`. 
-                                    // Let's rely on Payload ID if possible, but let's stick to what was there if it was working?
-                                    // Wait, the previous code passed a manipulated string. CONSTANTLY changing assumptions is dangerous.
-                                    // I will check the download route next. For now, I will pass the Payload ID.
-
-                                    return (
-                                        <div key={photo.id} className="aspect-square bg-muted rounded-lg overflow-hidden relative group">
-                                            {/* We need to pass a stable identifier to the Photo component */}
-                                            <Photo photoId={String(photo.id)} />
-                                        </div>
-                                    );
-                                })}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {photos.map((photo) => (
+                                    <div key={photo.id} className="aspect-square bg-muted rounded-lg overflow-hidden relative group border shadow-sm">
+                                        <Photo photoId={String(photo.id)} />
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -121,16 +100,16 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
                     <aside className="space-y-6">
                         <ShareGenerator projectId={projectId} />
 
-                        <div className="p-4 border rounded-lg bg-card">
+                        <div className="p-4 border rounded-lg bg-card shadow-sm">
                             <div className="flex items-center text-sm font-medium mb-3">
                                 <Settings className="w-4 h-4 mr-2" /> Project Details
                             </div>
-                            <dl className="text-sm space-y-2">
-                                <div className="flex justify-between">
+                            <dl className="text-sm space-y-3">
+                                <div className="flex justify-between border-b pb-2">
                                     <dt className="text-muted-foreground">Photos</dt>
                                     <dd className="font-medium">{photos.length}</dd>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between border-b pb-2">
                                     <dt className="text-muted-foreground">Visibility</dt>
                                     <dd className="font-medium">{project.is_public ? 'Public' : 'Private'}</dd>
                                 </div>
