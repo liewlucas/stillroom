@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
 import { notFound, redirect } from 'next/navigation';
-import { Navigation } from '@/components/navigation';
+
 import { ShareGenerator } from '@/components/share-generator';
 import { Photo } from '@/components/photo';
 import Link from 'next/link';
@@ -40,7 +40,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     if (!photographers.docs || photographers.docs.length === 0 || photographers.docs[0].id !== ownerId) {
         return (
             <main>
-                <Navigation />
                 <div className="container py-20 text-center">
                     <h1 className="text-2xl font-bold text-destructive">Unauthorized</h1>
                     <p className="text-muted-foreground mt-2">You do not have permission to view this project.</p>
@@ -63,7 +62,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
 
     return (
         <main>
-            <Navigation />
+
             <div className="container py-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

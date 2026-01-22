@@ -4,9 +4,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, X, UploadCloud, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 interface UploadFile extends File {
     preview: string;
@@ -52,6 +54,10 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
             newStatuses[file.id] = { id: file.id, status: 'pending', progress: 0 };
         });
         setUploadStatuses(prev => ({ ...prev, ...newStatuses }));
+
+        if (fileRejections.length > 0) {
+            toast.error(`${fileRejections.length} files were rejected (invalid type or size).`);
+        }
     }, []);
 
     const removeFile = (id: string) => {
@@ -97,12 +103,8 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
             if (!signRes.ok) throw new Error('Failed to sign upload');
             const { uploadUrl, key } = await signRes.json();
 
-            // 2. Upload to R2 (with fake progress simulation since fetch doesn't support generic progress events easily)
+            // 2. Upload to R2
             setStatus({ status: 'uploading', progress: 30 });
-
-            // XHR allows for progress monitoring, but simple fetch is often enough coupled with a fake progress interval 
-            // For simplicity and robustness in this environment, we'll use fetch and just jump progress.
-            // If strict progress is needed, we would use XMLHttpRequest.
 
             const uploadRes = await fetch(uploadUrl, {
                 method: 'PUT',
@@ -115,9 +117,6 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
             setStatus({ status: 'optimizing', progress: 80 });
 
             // 3. Complete Upload
-            // Get simple dimensions (in a real app, maybe use an image library to get actual dims)
-            // For now, we'll send 0,0 or basic placeholders. 
-            // Better: use an offscreen image to get dims before upload.
             const img = document.createElement('img');
             img.src = file.preview;
             await new Promise((resolve) => { img.onload = resolve; });
@@ -140,6 +139,7 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
         } catch (error) {
             console.error(error);
             setStatus({ status: 'error', error: 'Upload Failed' });
+            toast.error(`Failed to upload ${file.name}`);
         }
     };
 
@@ -147,22 +147,27 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
         setIsGlobalUploading(true);
         const pendingFiles = files.filter(f => uploadStatuses[f.id]?.status === 'pending');
 
-        // Parallel uploads - limit concurrency if needed, but for now map all
+        if (pendingFiles.length === 0) {
+            setIsGlobalUploading(false);
+            return;
+        }
+
         await Promise.all(pendingFiles.map(file => uploadSingleFile(file)));
 
-        // Keep global uploading true for a moment to show completion state
         setIsGlobalUploading(false);
 
-        // If all completed, redirect
         const allCompleted = files.every(f => uploadStatuses[f.id]?.status === 'completed');
         if (allCompleted) {
+            toast.success('All files uploaded successfully');
             setTimeout(() => router.push(`/dashboard/projects/${projectId}`), 1000);
+        } else {
+            toast.warning('Some files failed to upload');
         }
     };
 
     return (
-        <div className="container max-w-4xl py-10">
-            <div className="flex items-center justify-between mb-8">
+        <div className="container max-w-5xl py-10 space-y-8">
+            <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Upload Photos</h1>
                     <p className="text-muted-foreground mt-1">Add photos to your project gallery.</p>
@@ -178,7 +183,7 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
             <div
                 {...getRootProps()}
                 className={cn(
-                    "border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ease-in-out",
+                    "border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-200 ease-in-out bg-card",
                     isDragActive
                         ? "border-primary bg-primary/5 scale-[1.01]"
                         : "border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/50",
@@ -188,7 +193,7 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
                 <input {...getInputProps()} />
                 <div className="flex flex-col items-center gap-4">
                     <div className={cn("p-4 rounded-full bg-muted", isDragActive && "bg-background")}>
-                        <UploadCloud className="w-8 h-8 text-muted-foreground" />
+                        <UploadCloud className="w-8 h-8 text-secondary-foreground" />
                     </div>
                     <div>
                         <p className="font-medium text-lg">
@@ -203,86 +208,82 @@ export default function UploadPage({ params }: { params: Promise<{ projectId: st
 
             {/* File List */}
             {files.length > 0 && (
-                <div className="mt-10 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-lg">Queue ({files.length})</h3>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between py-4">
+                        <CardTitle className="text-lg font-semibold">Queue ({files.length})</CardTitle>
                         {!isGlobalUploading && (
-                            <Button onClick={handleStartUpload} size="lg">
+                            <Button onClick={handleStartUpload}>
                                 Start Upload
                             </Button>
                         )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {files.map((file) => {
-                            const status = uploadStatuses[file.id];
-                            return (
-                                <div key={file.id} className="group relative bg-card border rounded-lg overflow-hidden flex flex-col shadow-sm">
-                                    {/* Image Preview */}
-                                    <div className="relative aspect-[3/2] bg-muted">
-                                        <Image
-                                            src={file.preview}
-                                            alt={file.name}
-                                            fill
-                                            className="object-cover"
-                                        />
-
-                                        {/* Status Overlay */}
-                                        {status.status === 'completed' && (
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                                                <div className="bg-green-500 text-white p-2 rounded-full">
-                                                    <CheckCircle2 className="w-6 h-6" />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {status.status === 'error' && (
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
-                                                <div className="bg-destructive text-white p-2 rounded-full">
-                                                    <AlertCircle className="w-6 h-6" />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Remove Button */}
-                                        {!isGlobalUploading && status.status !== 'completed' && (
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
-                                                className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* Info & Progress */}
-                                    <div className="p-3 flex flex-col gap-2">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="truncate max-w-[150px] font-medium" title={file.name}>{file.name}</span>
-                                            <span className="text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
-                                        </div>
-
-                                        {/* Progress Bar */}
-                                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                            <div
-                                                className={cn(
-                                                    "h-full transition-all duration-300",
-                                                    status.status === 'error' ? "bg-destructive" : "bg-primary"
-                                                )}
-                                                style={{ width: `${status.progress}%` }}
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {files.map((file) => {
+                                const status = uploadStatuses[file.id];
+                                return (
+                                    <div key={file.id} className="group relative bg-muted/40 border rounded-lg overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                                        {/* Image Preview */}
+                                        <div className="relative aspect-[3/2] bg-muted">
+                                            <Image
+                                                src={file.preview}
+                                                alt={file.name}
+                                                fill
+                                                className="object-cover"
                                             />
+
+                                            {/* Status Overlay */}
+                                            {status.status === 'completed' && (
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                                                    <div className="bg-green-500 text-white p-2 rounded-full shadow-lg">
+                                                        <CheckCircle2 className="w-6 h-6" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {status.status === 'error' && (
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px]">
+                                                    <div className="bg-destructive text-white p-2 rounded-full shadow-lg">
+                                                        <AlertCircle className="w-6 h-6" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Remove Button */}
+                                            {!isGlobalUploading && status.status !== 'completed' && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); removeFile(file.id); }}
+                                                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
 
-                                        <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                                            <span>{status.status}</span>
-                                            <span>{status.progress}%</span>
+                                        {/* Info & Progress */}
+                                        <div className="p-3 flex flex-col gap-2">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <span className="truncate max-w-[150px] font-medium" title={file.name}>{file.name}</span>
+                                                <span className="text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                                <div
+                                                    className={cn(
+                                                        "h-full transition-all duration-300",
+                                                        status.status === 'error' ? "bg-destructive" : "bg-primary"
+                                                    )}
+                                                    style={{ width: `${status.progress}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
+                                )
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );
