@@ -246,10 +246,25 @@ export function GalleryManager({ galleries }: GalleryManagerProps) {
 
             {/* Selection Floating Bar */}
             {isSelectionMode && selectedIds.size > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-foreground text-background px-6 py-3 rounded-full shadow-xl animate-in fade-in slide-in-from-bottom-4">
-                    <span className="font-medium text-sm">{selectedIds.size} selected</span>
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-foreground text-background px-6 py-3 rounded-full shadow-xl animate-in fade-in slide-in-from-bottom-4">
+                    <span className="font-medium text-sm mr-2">{selectedIds.size} selected</span>
 
-                    <div className="h-4 w-px bg-background/20" />
+                    <div className="h-4 w-px bg-background/20 mx-2" />
+
+                    {selectedIds.size === 1 && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                const id = Array.from(selectedIds)[0];
+                                const gallery = galleries.find(g => g.id === id);
+                                if (gallery) handleEditClick(gallery);
+                            }}
+                            className="h-8 hover:bg-white/10"
+                        >
+                            <Pencil className="w-4 h-4 mr-2" /> Edit
+                        </Button>
+                    )}
 
                     <Button
                         variant="ghost"
@@ -283,7 +298,7 @@ export function GalleryManager({ galleries }: GalleryManagerProps) {
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="title">Name</Label>
+                            <Label htmlFor="title">Gallery Name</Label>
                             <Input
                                 id="title"
                                 value={editForm.title}
@@ -291,8 +306,9 @@ export function GalleryManager({ galleries }: GalleryManagerProps) {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
+                            <Label htmlFor="description">Description (Optional)</Label>
+                            {/* User requested same fields as creation, which uses Input */}
+                            <Input
                                 id="description"
                                 value={editForm.description}
                                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
