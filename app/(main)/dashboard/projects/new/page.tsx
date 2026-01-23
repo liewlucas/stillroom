@@ -30,8 +30,8 @@ export default function NewProjectPage() {
             const data = await res.json();
             toast.success('Project created successfully');
 
-            // Redirect to Upload page
-            router.push(`/dashboard/projects/${data.id}/upload`);
+            // Redirect to Project Dashboard
+            router.push(`/dashboard/projects/${data.id}`);
         } catch (error) {
             console.error(error);
             toast.error('Failed to create project');
