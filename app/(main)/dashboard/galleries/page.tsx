@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ensurePhotographer } from '@/lib/auth-sync';
 import { FolderOpen, Plus } from 'lucide-react';
+import { GalleryManager } from '@/components/gallery-manager';
 
 export const runtime = 'nodejs'; // Payload
 
@@ -64,40 +65,7 @@ export default async function GalleriesPage() {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {galleries.map((gallery) => (
-                            <Link key={gallery.id} href={`/dashboard/galleries/${gallery.id}`} className="block group h-full">
-                                <div className="h-full p-6 border rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/50 group-hover:-translate-y-0.5 relative overflow-hidden">
-                                    {/* Box Hover Effect Highlight */}
-                                    {/* <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors" /> */}
-
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="p-2 bg-primary/5 rounded-md">
-                                            <FolderOpen className="w-5 h-5 text-primary" />
-                                        </div>
-                                        {/* Status badge could go here */}
-                                    </div>
-
-                                    <h3 className="font-semibold text-lg tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-                                        {gallery.title}
-                                    </h3>
-                                    {gallery.description && (
-                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-                                            {gallery.description}
-                                        </p>
-                                    )}
-                                    <div className="text-sm text-muted-foreground mt-1 font-mono text-xs opacity-70 truncate">
-                                        /{gallery.slug}
-                                    </div>
-
-                                    <div className="mt-6 pt-4 border-t flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{new Date(gallery.createdAt).toLocaleDateString()}</span>
-                                        <span>View &rarr;</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                    <GalleryManager galleries={galleries} />
                 )}
             </div>
         </main>
