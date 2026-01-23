@@ -43,7 +43,7 @@ export async function DELETE(
 
         const currentPhotographerId = photographers.docs[0].id;
         const galleryOwnerId = typeof gallery.photographer === 'object'
-            ? (gallery.photographer as any).id
+            ? (gallery.photographer as { id: string }).id
             : gallery.photographer;
 
         if (galleryOwnerId !== currentPhotographerId) {
@@ -148,7 +148,7 @@ export async function PATCH(
 
         const currentPhotographerId = photographers.docs[0].id;
         const galleryOwnerId = typeof gallery.photographer === 'object'
-            ? (gallery.photographer as any).id
+            ? (gallery.photographer as { id: string }).id
             : gallery.photographer;
 
         if (galleryOwnerId !== currentPhotographerId) {
