@@ -10,14 +10,14 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
     try {
         const { userId } = await auth();
-        console.log('[API/projects] Request from user:', userId);
+        // console.log('[API/galleries] Request from user:', userId);
 
         if (!userId) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await req.json();
-        const { title } = body;
+        const { title, description } = body;
 
         if (!title || typeof title !== 'string') {
             return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
                 photographer = result.docs[0];
             } else {
                 // Fallback: Just-in-time creation if not found (Consistency)
-                console.log('[API/projects] Photographer not found, creating...');
+                console.log('[API/galleries] Photographer not found, creating...');
                 const user = await import('@clerk/nextjs/server').then(mod => mod.currentUser());
                 if (!user) throw new Error('User not found'); // Should not happen if auth() passed
 
@@ -54,35 +54,36 @@ export async function POST(req: NextRequest) {
                 });
             }
         } catch (e) {
-            console.error('[API/projects] Error resolving photographer:', e);
+            console.error('[API/galleries] Error resolving photographer:', e);
             return NextResponse.json({ error: 'Failed to resolve photographer identity' }, { status: 500 });
         }
 
         // 2. Generate Slug
-        const baseSlug = title.toLowerCase().replace(/[^a-z0-0]+/g, '-').replace(/(^-|-$)/g, '');
+        const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         const uniqueSuffix = Date.now().toString().slice(-4);
         const slug = `${baseSlug}-${uniqueSuffix}`;
 
-        // 3. Create Project
-        const project = await payload.create({
-            collection: 'projects',
+        // 3. Create Gallery
+        const gallery = await payload.create({
+            collection: 'galleries',
             data: {
                 title,
+                description,
                 slug,
                 photographer: photographer.id,
                 is_public: false,
             }
         });
 
-        console.log('[API/projects] Created project:', project.id);
+        console.log('[API/galleries] Created gallery:', gallery.id);
 
         return NextResponse.json({
-            id: project.id,
-            slug: project.slug
+            id: gallery.id,
+            slug: gallery.slug
         });
 
     } catch (error) {
-        console.error('[API/projects] Error:', error);
+        console.error('[API/galleries] Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

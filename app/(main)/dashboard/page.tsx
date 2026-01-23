@@ -22,17 +22,17 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <Link href="/dashboard/projects" className="block group h-full">
+                    <Link href="/dashboard/galleries" className="block group h-full">
                         <Card className="h-full hover:shadow-md transition-all border-muted-foreground/20 hover:border-primary/50 group-hover:-translate-y-0.5">
                             <CardHeader>
                                 <div className="p-2 w-fit bg-primary/5 rounded-md mb-2">
                                     <FolderOpen className="w-6 h-6 text-primary" />
                                 </div>
-                                <CardTitle className="group-hover:text-primary transition-colors">Projects</CardTitle>
+                                <CardTitle className="group-hover:text-primary transition-colors">Galleries</CardTitle>
                                 <CardDescription>Manage your photo galleries and uploads.</CardDescription>
                             </CardHeader>
                             <CardContent className="text-sm text-primary flex items-center gap-1 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                View Projects <ArrowRight className="w-4 h-4" />
+                                View Galleries <ArrowRight className="w-4 h-4" />
                             </CardContent>
                         </Card>
                     </Link>

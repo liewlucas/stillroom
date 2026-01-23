@@ -1,15 +1,25 @@
 import { CollectionConfig } from 'payload';
 
-export const Projects: CollectionConfig = {
-    slug: 'projects',
+export const Galleries: CollectionConfig = {
+    slug: 'galleries',
+    labels: {
+        singular: 'Gallery',
+        plural: 'Galleries',
+    },
     admin: {
         useAsTitle: 'title',
     },
     fields: [
         {
             name: 'title',
+            label: 'Name',
             type: 'text',
             required: true,
+        },
+        {
+            name: 'description',
+            label: 'Description',
+            type: 'text',
         },
         {
             name: 'slug',

@@ -12,7 +12,7 @@ interface ProjectLightboxProps {
     onClose: () => void;
 }
 
-export function ProjectLightbox({ photos, initialIndex, onClose }: ProjectLightboxProps) {
+export function GalleryLightbox({ photos, initialIndex, onClose }: ProjectLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);

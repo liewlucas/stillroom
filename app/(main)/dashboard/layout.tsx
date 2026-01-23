@@ -25,9 +25,9 @@ export default async function DashboardLayout({
                 </div>
 
                 <div className="px-4 mb-4">
-                    <Link href="/dashboard/projects/new">
+                    <Link href="/dashboard/galleries/new">
                         <Button className="w-full justify-start" size="sm">
-                            <Plus className="mr-2 h-4 w-4" /> New Project
+                            <Plus className="mr-2 h-4 w-4" /> New Gallery
                         </Button>
                     </Link>
                 </div>
@@ -35,9 +35,9 @@ export default async function DashboardLayout({
                 <Separator className="mb-4" />
 
                 <nav className="flex-1 px-4 space-y-1">
-                    <Link href="/dashboard/projects">
+                    <Link href="/dashboard/galleries">
                         <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground">
-                            <FolderOpen className="mr-2 h-4 w-4" /> Projects
+                            <FolderOpen className="mr-2 h-4 w-4" /> Galleries
                         </Button>
                     </Link>
                     <Link href="/dashboard">

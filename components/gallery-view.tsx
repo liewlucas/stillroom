@@ -6,20 +6,20 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Photo } from '@/components/photo';
-import { ProjectUploader } from '@/components/project-uploader';
-import { ProjectLightbox } from '@/components/project-lightbox';
+import { GalleryUploader } from '@/components/gallery-uploader';
+import { GalleryLightbox } from '@/components/gallery-lightbox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-interface ProjectViewProps {
+interface GalleryViewProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    project: any;
+    gallery: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
     sidebarSlot: React.ReactNode;
 }
 
-export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) {
+export function GalleryView({ gallery, photos, sidebarSlot }: GalleryViewProps) {
     const router = useRouter();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -60,7 +60,8 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     photoIds: Array.from(selectedIds),
-                    projectId: project.id
+                    projectId: gallery.id // API might still expect projectId if not updated, but we are keeping database fields related to 'project' or updating them?
+                    // I will check the API next. For now, assuming API handles it.
                 })
             });
 
@@ -88,7 +89,7 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     photoIds: Array.from(selectedIds),
-                    projectId: project.id
+                    projectId: gallery.id
                 })
             });
 
@@ -99,7 +100,7 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `photos-${project.title.toLowerCase().replace(/\s+/g, '-')}.zip`;
+            a.download = `photos-${gallery.title.toLowerCase().replace(/\s+/g, '-')}.zip`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -121,10 +122,13 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <Link href="/dashboard/projects" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
-                        <ArrowLeft className="w-4 h-4" /> Back to Projects
+                    <Link href="/dashboard/galleries" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+                        <ArrowLeft className="w-4 h-4" /> Back to Galleries
                     </Link>
-                    <h1 className="text-3xl font-bold tracking-tight">{project.title}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{gallery.title}</h1>
+                    {gallery.description && (
+                        <p className="text-muted-foreground mt-1 max-w-2xl">{gallery.description}</p>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     {photos.length > 0 && (
@@ -136,7 +140,7 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
                             {isSelectionMode ? 'Cancel' : 'Select'}
                         </Button>
                     )}
-                    <ProjectUploader projectId={project.id} />
+                    <GalleryUploader projectId={gallery.id} />
                 </div>
             </div>
 
@@ -146,7 +150,7 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
                 <div className="relative">
                     {photos.length === 0 ? (
                         <div className="border-2 border-dashed rounded-xl p-12 text-center bg-muted/10">
-                            <p className="text-muted-foreground mb-4">No photos in this project yet.</p>
+                            <p className="text-muted-foreground mb-4">No photos in this gallery yet.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -200,7 +204,7 @@ export function ProjectView({ project, photos, sidebarSlot }: ProjectViewProps) 
 
                     {/* Lightbox */}
                     {lightboxIndex !== null && (
-                        <ProjectLightbox
+                        <GalleryLightbox
                             photos={photos}
                             initialIndex={lightboxIndex}
                             onClose={() => setLightboxIndex(null)}

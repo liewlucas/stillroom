@@ -4,9 +4,9 @@ export const ShareLinks: CollectionConfig = {
     slug: 'share_links',
     fields: [
         {
-            name: 'project',
+            name: 'gallery',
             type: 'relationship',
-            relationTo: 'projects',
+            relationTo: 'galleries',
             required: true,
         },
         {

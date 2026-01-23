@@ -7,15 +7,15 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { ProjectLightbox } from '@/components/project-lightbox';
+import { GalleryLightbox } from '@/components/gallery-lightbox';
 
-interface ProjectGalleryProps {
+interface GalleryGridProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
-    projectId: string;
+    galleryId: string;
 }
 
-export function ProjectGallery({ photos, projectId }: ProjectGalleryProps) {
+export function GalleryGrid({ photos, galleryId }: GalleryGridProps) {
     const router = useRouter();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -56,7 +56,7 @@ export function ProjectGallery({ photos, projectId }: ProjectGalleryProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     photoIds: Array.from(selectedIds),
-                    projectId
+                    projectId: galleryId // Keeping 'projectId' key if API expects it, but variable is galleryId
                 })
             });
 
@@ -93,7 +93,7 @@ export function ProjectGallery({ photos, projectId }: ProjectGalleryProps) {
             <div className="relative">
                 {photos.length === 0 ? (
                     <div className="border-2 border-dashed rounded-xl p-12 text-center bg-muted/10">
-                        <p className="text-muted-foreground mb-4">No photos in this project yet.</p>
+                        <p className="text-muted-foreground mb-4">No photos in this gallery yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -147,7 +147,7 @@ export function ProjectGallery({ photos, projectId }: ProjectGalleryProps) {
 
                 {/* Lightbox */}
                 {lightboxIndex !== null && (
-                    <ProjectLightbox
+                    <GalleryLightbox
                         photos={photos}
                         initialIndex={lightboxIndex}
                         onClose={() => setLightboxIndex(null)}

@@ -4,7 +4,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Photographers } from './collections/Photographers';
-import { Projects } from './collections/Projects';
+import { Galleries } from './collections/Galleries';
 import { Photos } from './collections/Photos';
 import { ShareLinks } from './collections/ShareLinks';
 
@@ -15,7 +15,7 @@ export default buildConfig({
     admin: {
         user: 'photographers', // Use photographers collection for login (or create a dedicated 'users' collection)
     },
-    collections: [Photographers, Projects, Photos, ShareLinks],
+    collections: [Photographers, Galleries, Photos, ShareLinks],
     editor: lexicalEditor({}),
     secret: process.env.PAYLOAD_SECRET || 'YOUR_SECRET_HERE',
     typescript: {

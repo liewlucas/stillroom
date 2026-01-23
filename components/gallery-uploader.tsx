@@ -29,7 +29,7 @@ interface UploadStatus {
     error?: string;
 }
 
-export function ProjectUploader({ projectId }: { projectId: string }) {
+export function GalleryUploader({ projectId }: { projectId: string }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);
