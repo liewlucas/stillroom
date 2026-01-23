@@ -1,8 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Camera, Image as ImageIcon, Briefcase, ShoppingBag, CheckCircle2 } from "lucide-react";
+import { Camera, Image as ImageIcon, ShoppingBag, CheckCircle2 } from "lucide-react";
 import { SignInButton, SignUpButton, SignedIn, SignedOut } from "@clerk/nextjs";
+
+export const dynamic = "force-dynamic";
 
 export default function LandingPage() {
   return (

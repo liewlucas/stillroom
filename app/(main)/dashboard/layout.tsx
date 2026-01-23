@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { UserButton } from "@clerk/nextjs";
-import { LayoutGrid, Plus, FolderOpen, Settings } from "lucide-react";
+import { LayoutGrid, Plus, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 

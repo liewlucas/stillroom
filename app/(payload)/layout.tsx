@@ -2,7 +2,7 @@
 import configPromise from '@payload-config'
 import '@payloadcms/next/css'
 import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
-/* eslint-disable-next-line import/no-unresolved */
+
 import React from 'react'
 
 import { importMap } from './admin/importMap'
@@ -11,6 +11,7 @@ type Args = {
     children: React.ReactNode
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serverFunction = async (args: any) => {
     'use server'
     return handleServerFunctions({

@@ -14,6 +14,7 @@ export default async function ProjectsPage() {
     const { userId } = await auth();
     if (!userId) return null;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let projects: any[] = [];
     try {
         const photographer = await ensurePhotographer();

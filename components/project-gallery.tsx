@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Photo } from '@/components/photo';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Trash2, X } from 'lucide-react';
+import { CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ProjectLightbox } from '@/components/project-lightbox';
 
 interface ProjectGalleryProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
     projectId: string;
 }

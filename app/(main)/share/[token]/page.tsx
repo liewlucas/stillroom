@@ -1,5 +1,5 @@
 import { getPayloadClient } from '@/lib/data';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Navigation } from '@/components/navigation';
 import { Photo } from '@/components/photo';
 
@@ -35,7 +35,9 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
 
     // 2. Fetch Project & Photos
     // Resolving relationships
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const project = typeof share.project === 'object' ? share.project : await payload.findByID({ collection: 'projects', id: share.project as any });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const photographer = typeof project.photographer === 'object' ? project.photographer : await payload.findByID({ collection: 'photographers', id: project.photographer as any });
 
     const photos = await payload.find({

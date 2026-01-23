@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { FolderOpen, LayoutGrid, BarChart3, ArrowRight } from "lucide-react";
+import { FolderOpen, BarChart3, ArrowRight } from "lucide-react";
 
 export default async function DashboardPage() {
     const { userId } = await auth();

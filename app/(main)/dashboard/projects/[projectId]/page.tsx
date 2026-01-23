@@ -3,10 +3,9 @@ import { getPayloadClient } from '@/lib/data';
 import { notFound, redirect } from 'next/navigation';
 
 import { ShareGenerator } from '@/components/share-generator';
-import { Photo } from '@/components/photo';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { ProjectView } from '@/components/project-view';
 
 export const runtime = 'nodejs';
@@ -26,7 +25,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     let project;
     try {
         project = await payload.findByID({ collection: 'projects', id: projectId });
-    } catch (e) {
+    } catch {
         notFound();
     }
 

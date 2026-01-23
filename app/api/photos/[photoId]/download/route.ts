@@ -28,7 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
                 collection: 'photos',
                 id: photoId
             });
-        } catch (e) {
+        } catch {
             // If failed (e.g. invalid ID format or not found), try searching by R2 key (legacy/fallback)
             const photos = await payload.find({
                 collection: 'photos',
@@ -51,7 +51,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
 
         const { userId } = await auth();
         if (userId) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'projects', id: photo.project as any });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const photographer = typeof project.photographer === 'object' ? project.photographer : await payload.findByID({ collection: 'photographers', id: project.photographer as any });
 
             // Verify against current user
@@ -88,6 +90,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         }
 
         if (!authorized) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'projects', id: photo.project as any });
             if (project.is_public) authorized = true;
         }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useDropzone, FileRejection } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, X, UploadCloud, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, UploadCloud, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { toast } from 'sonner';

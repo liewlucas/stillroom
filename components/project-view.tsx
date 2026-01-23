@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, Trash2, X, Download, Settings } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Photo } from '@/components/photo';
 import { ProjectUploader } from '@/components/project-uploader';
@@ -12,7 +12,9 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface ProjectViewProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     project: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
     sidebarSlot: React.ReactNode;
 }

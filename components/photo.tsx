@@ -35,6 +35,7 @@ export function Photo({ photoId, token, onClick, className }: PhotoProps) {
     }
 
     return (
+        /* eslint-disable-next-line @next/next/no-img-element */
         <img
             src={src}
             loading="lazy"

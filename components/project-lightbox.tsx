@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Image from 'next/image';
+
 
 interface ProjectLightboxProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
     initialIndex: number;
     onClose: () => void;

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
-import { slugify } from '@/lib/utils'; // We need to create this util
-import { ensurePhotographer } from '@/lib/auth-sync';
+
 
 // Authoritative Spec: Flow 1 - Create New Project
 export const runtime = 'nodejs';
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
                         username: user.username || userId,
                         display_name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Photographer',
                         email: user.emailAddresses[0]?.emailAddress || `${userId}@example.com`,
-                        password: require('crypto').randomBytes(16).toString('hex') // Dummy password
+                        password: crypto.randomBytes(16).toString('hex') // Dummy password
                     }
                 });
             }

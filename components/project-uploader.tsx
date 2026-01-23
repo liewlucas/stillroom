@@ -12,7 +12,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, X, UploadCloud, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, X, UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { toast } from 'sonner';
