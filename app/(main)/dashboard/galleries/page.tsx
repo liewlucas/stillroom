@@ -3,7 +3,6 @@ import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ensurePhotographer } from '@/lib/auth-sync';
 import { FolderOpen, Plus } from 'lucide-react';
 import { GalleryManager } from '@/components/gallery-manager';
 
@@ -18,19 +17,24 @@ export default async function GalleriesPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let galleries: any[] = [];
     try {
-        const photographer = await ensurePhotographer();
         const payload = await getPayloadClient();
-
-        const result = await payload.find({
-            collection: 'galleries',
-            where: {
-                photographer: {
-                    equals: photographer.id
-                }
-            },
-            sort: '-createdAt'
+        const photographers = await payload.find({
+            collection: 'photographers',
+            where: { clerk_user_id: { equals: userId } }
         });
-        galleries = result.docs;
+        const photographer = photographers.docs[0];
+        if (photographer) {
+            const result = await payload.find({
+                collection: 'galleries',
+                where: {
+                    photographer: {
+                        equals: photographer.id
+                    }
+                },
+                sort: '-createdAt'
+            });
+            galleries = result.docs;
+        }
 
     } catch (e) {
         console.error('Failed to fetch galleries', e);
