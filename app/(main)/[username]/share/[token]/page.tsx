@@ -64,6 +64,7 @@ export default async function SharedGalleryPage({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             photos={photos.docs as any[]}
             token={share.token as string}
+            galleryId={String(gallery.id)}
         />
     );
 }
