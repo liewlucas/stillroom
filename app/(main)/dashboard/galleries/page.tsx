@@ -33,7 +33,23 @@ export default async function GalleriesPage() {
                 },
                 sort: '-createdAt'
             });
-            galleries = result.docs;
+
+            // Enrich each gallery with its first photo (for thumbnail) and photo count
+            galleries = await Promise.all(
+                result.docs.map(async (gallery) => {
+                    const photos = await payload.find({
+                        collection: 'photos',
+                        where: { project: { equals: gallery.id } },
+                        limit: 1,
+                        sort: 'createdAt',
+                    });
+                    return {
+                        ...gallery,
+                        coverPhotoId: photos.docs[0]?.id ? String(photos.docs[0].id) : null,
+                        photoCount: photos.totalDocs,
+                    };
+                })
+            );
         }
 
     } catch (e) {
