@@ -10,9 +10,10 @@ interface ProjectLightboxProps {
     photos: any[];
     initialIndex: number;
     onClose: () => void;
+    token?: string;
 }
 
-export function GalleryLightbox({ photos, initialIndex, onClose }: ProjectLightboxProps) {
+export function GalleryLightbox({ photos, initialIndex, onClose, token }: ProjectLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -31,7 +32,8 @@ export function GalleryLightbox({ photos, initialIndex, onClose }: ProjectLightb
 
         const fetchUrl = async () => {
             try {
-                const res = await fetch(`/api/photos/${activePhoto.id}/download`);
+                const query = token ? `?token=${token}` : '';
+                const res = await fetch(`/api/photos/${activePhoto.id}/download${query}`);
                 if (res.ok) {
                     const data = await res.json();
                     if (isMounted) setCurrentUrl(data.url);

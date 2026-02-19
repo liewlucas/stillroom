@@ -52,7 +52,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         const { userId } = await auth();
         if (userId) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'projects', id: photo.project as any });
+            const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'galleries', id: photo.project as any });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const photographer = typeof project.photographer === 'object' ? project.photographer : await payload.findByID({ collection: 'photographers', id: project.photographer as any });
 
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
                 collection: 'share_links',
                 where: {
                     token: { equals: shareToken },
-                    project: { equals: (typeof photo.project === 'object' ? photo.project.id : photo.project) }
+                    gallery: { equals: (typeof photo.project === 'object' ? photo.project.id : photo.project) }
                 }
             });
 
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
 
         if (!authorized) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'projects', id: photo.project as any });
+            const project = typeof photo.project === 'object' ? photo.project : await payload.findByID({ collection: 'galleries', id: photo.project as any });
             if (project.is_public) authorized = true;
         }
 

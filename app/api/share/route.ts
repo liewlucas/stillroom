@@ -11,36 +11,33 @@ export async function POST(req: NextRequest) {
         const { userId } = await auth();
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const photographer = await ensurePhotographer();
+        const photographer = await ensurePhotographer(userId);
         const body = await req.json();
-        const { projectId, expiresAt, downloadLimit } = body;
+        const { galleryId, expiresAt, downloadLimit } = body;
 
-        if (!projectId) {
-            return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
+        if (!galleryId) {
+            return NextResponse.json({ error: 'Gallery ID required' }, { status: 400 });
         }
 
         const payload = await getPayloadClient();
-        const project = await payload.findByID({
-            collection: 'projects',
-            id: projectId,
+        const gallery = await payload.findByID({
+            collection: 'galleries',
+            id: galleryId,
         });
 
-        // Ensure project belongs to photographer
-        // Payload relationship returns object or ID.
-        // Assuming depth=0 or 1.
-        // We will compare IDs.
-        const projectOwnerId = typeof project.photographer === 'object' ? project.photographer.id : project.photographer;
+        const galleryOwnerId = typeof gallery.photographer === 'object' ? gallery.photographer.id : gallery.photographer;
 
-        if (String(projectOwnerId) !== String(photographer.id)) {
+        if (String(galleryOwnerId) !== String(photographer.id)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
         const token = uuidv4().replace(/-/g, '').substring(0, 12);
 
+        console.log('[/api/share] creating share link', { galleryId: gallery.id, token });
         const shareLink = await payload.create({
             collection: 'share_links',
             data: {
-                project: projectId,
+                gallery: gallery.id,
                 token: token,
                 expires_at: expiresAt || null,
                 download_limit: downloadLimit ? parseInt(downloadLimit) : null,
@@ -49,7 +46,8 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(shareLink);
     } catch (e) {
-        console.error(e);
-        return NextResponse.json({ error: 'Server Error' }, { status: 500 });
+        const message = e instanceof Error ? e.message : String(e);
+        console.error('[/api/share]', message);
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

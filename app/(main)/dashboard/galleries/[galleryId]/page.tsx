@@ -73,7 +73,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ galler
 
     const sidebarContent = (
         <>
-            <ShareGenerator projectId={galleryId} />
+            <ShareGenerator galleryId={galleryId} />
 
             <div className="p-4 border rounded-lg bg-card shadow-sm">
                 <div className="flex items-center text-sm font-medium mb-3">

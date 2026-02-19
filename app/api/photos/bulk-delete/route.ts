@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
         // 1. Verify Project Ownership
         const project = await payload.findByID({
-            collection: 'projects',
+            collection: 'galleries',
             id: projectId,
         });
 

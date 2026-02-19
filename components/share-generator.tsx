@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link as LinkIcon, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function ShareGenerator({ projectId }: { projectId: string }) {
+export function ShareGenerator({ galleryId }: { galleryId: string }) {
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -16,9 +16,13 @@ export function ShareGenerator({ projectId }: { projectId: string }) {
             const res = await fetch('/api/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ projectId })
+                body: JSON.stringify({ galleryId })
             });
             const data = await res.json();
+            if (!res.ok) {
+                toast.error(data.error || 'Failed to create link');
+                return;
+            }
             if (data.token) {
                 setToken(data.token);
                 toast.success('Share link created!');

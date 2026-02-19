@@ -1,19 +1,17 @@
 import { getPayloadClient } from '@/lib/data';
 import { notFound } from 'next/navigation';
-import { Navigation } from '@/components/navigation';
-import { Photo } from '@/components/photo';
+import { PublicGalleryView } from '@/components/public-gallery-view';
 
 export const runtime = 'nodejs';
 
-// /share/[token]
 export default async function SharedGalleryPage({ params }: { params: Promise<{ token: string }> }) {
     const { token } = await params;
     const payload = await getPayloadClient();
 
-    // 1. Validate Token
+    // 1. Validate token
     const shares = await payload.find({
         collection: 'share_links',
-        where: { token: { equals: token } }
+        where: { token: { equals: token } },
     });
 
     if (!shares.docs || shares.docs.length === 0) {
@@ -21,48 +19,40 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
     }
     const share = shares.docs[0];
 
-    // Check expiration
+    // 2. Check expiration
     if (share.expires_at && new Date(share.expires_at) < new Date()) {
         return (
-            <main>
-                <Navigation />
-                <div className="container" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-                    <h1>Link Expired</h1>
+            <div className="min-h-screen flex items-center justify-center px-4">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-2">Link Expired</h1>
+                    <p className="text-muted-foreground">This gallery link is no longer available.</p>
                 </div>
-            </main>
+            </div>
         );
     }
 
-    // 2. Fetch Project & Photos
-    // Resolving relationships
+    // 3. Resolve gallery
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const project = typeof share.project === 'object' ? share.project : await payload.findByID({ collection: 'projects', id: share.project as any });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const photographer = typeof project.photographer === 'object' ? project.photographer : await payload.findByID({ collection: 'photographers', id: project.photographer as any });
+    const gallery = typeof share.gallery === 'object' ? share.gallery : await payload.findByID({ collection: 'galleries', id: share.gallery as any });
 
+    // 4. Resolve photographer
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const photographer = typeof gallery.photographer === 'object' ? gallery.photographer : await payload.findByID({ collection: 'photographers', id: gallery.photographer as any });
+
+    // 5. Fetch photos
     const photos = await payload.find({
         collection: 'photos',
-        where: { project: { equals: project.id } },
-        limit: 100,
+        where: { project: { equals: gallery.id } },
+        limit: 200,
+        sort: 'createdAt',
     });
 
     return (
-        <main>
-            <Navigation />
-            <div className="container py-12">
-                <header className="text-center mb-12">
-                    <h1 className="text-4xl font-bold mb-2">{project.title}</h1>
-                    <p className="text-muted-foreground">Shared by {photographer.display_name}</p>
-                </header>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {photos.docs.map((photo) => (
-                        <div key={photo.id} className="relative aspect-square bg-muted rounded-lg overflow-hidden group">
-                            <Photo photoId={String(photo.id)} token={token} />
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </main>
+        <PublicGalleryView
+            gallery={gallery}
+            photographer={photographer}
+            photos={photos.docs}
+            token={token}
+        />
     );
 }
