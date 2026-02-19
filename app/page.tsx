@@ -25,8 +25,8 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-4">
             <SignedIn>
-              <Link href="/dashboard">
-                <Button>Dashboard</Button>
+              <Link href="/dashboard/galleries">
+                <Button>Galleries</Button>
               </Link>
             </SignedIn>
             <SignedOut>
@@ -69,9 +69,9 @@ export default function LandingPage() {
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <Link href="/dashboard">
+              <Link href="/dashboard/galleries">
                 <Button size="lg" className="rounded-full h-12 px-8 text-base">
-                  Go to Dashboard
+                  Go to Galleries
                 </Button>
               </Link>
             </SignedIn>
@@ -81,13 +81,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Dashboard Preview Section */}
+      {/* Gallery Preview Section */}
       <section className="relative z-10 -mt-12 md:-mt-20 pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="relative rounded-xl overflow-hidden border shadow-2xl bg-card aspect-[16/10] md:aspect-[21/9] group">
             <Image
               src="/dashboard-preview.png"
-              alt="Dashboard Preview"
+              alt="Gallery Preview"
               fill
               className="object-cover"
             />

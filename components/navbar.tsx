@@ -7,7 +7,6 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
     { href: '/dashboard/galleries', label: 'Galleries' },
 ];
 
