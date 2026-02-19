@@ -51,7 +51,8 @@ export default async function SharedGalleryPage({ params }: { params: Promise<{ 
         <PublicGalleryView
             gallery={gallery}
             photographer={photographer}
-            photos={photos.docs}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            photos={photos.docs as any[]}
             token={token}
         />
     );
