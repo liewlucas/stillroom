@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
         const photographer = await ensurePhotographer(userId);
         const body = await req.json();
-        const { galleryId, expiresAt, downloadLimit } = body;
+        const { galleryId, expiresAt, downloadLimit, customSlug } = body;
 
         if (!galleryId) {
             return NextResponse.json({ error: 'Gallery ID required' }, { status: 400 });
@@ -31,14 +31,28 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
+        // Validate custom slug if provided
+        if (customSlug) {
+            if (!/^[a-z0-9-]+$/.test(customSlug)) {
+                return NextResponse.json({ error: 'Name can only contain lowercase letters, numbers, and hyphens' }, { status: 400 });
+            }
+            if (customSlug.length < 3 || customSlug.length > 50) {
+                return NextResponse.json({ error: 'Name must be between 3 and 50 characters' }, { status: 400 });
+            }
+            const taken = await payload.find({ collection: 'share_links', where: { slug: { equals: customSlug } } });
+            if (taken.docs.length > 0) {
+                return NextResponse.json({ error: 'That URL name is already taken' }, { status: 409 });
+            }
+        }
+
         const token = uuidv4().replace(/-/g, '').substring(0, 12);
 
-        console.log('[/api/share] creating share link', { galleryId: gallery.id, token });
         const shareLink = await payload.create({
             collection: 'share_links',
             data: {
                 gallery: gallery.id,
-                token: token,
+                token,
+                slug: customSlug || null,
                 expires_at: expiresAt || null,
                 download_limit: downloadLimit ? parseInt(downloadLimit) : null,
             }

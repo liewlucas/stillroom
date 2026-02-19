@@ -59,6 +59,20 @@ export default async function GalleryPage({ params }: { params: Promise<{ galler
     // If the database has 'project' column mostly, payload might look for 'gallery' column now.
     // Assuming fresh table or migration handled by Payload dev mode (it creates new tables usually).
 
+    // 3b. Fetch existing share links for this gallery
+    const shareLinksResult = await payload.find({
+        collection: 'share_links',
+        where: { gallery: { equals: galleryId } },
+        sort: '-createdAt',
+        limit: 20,
+    });
+    const shareLinks = shareLinksResult.docs.map((l) => ({
+        id: String(l.id),
+        token: l.token as string,
+        slug: (l.slug as string | null) ?? null,
+        expires_at: (l.expires_at as string | null) ?? null,
+    }));
+
     const result = await payload.find({
         collection: 'photos',
         where: { project: { equals: galleryId } }, // Revert to query by 'project' field as I kept the NAME 'project' in Photos.ts to minimize noise, wait did I?
@@ -73,7 +87,7 @@ export default async function GalleryPage({ params }: { params: Promise<{ galler
 
     const sidebarContent = (
         <>
-            <ShareGenerator galleryId={galleryId} />
+            <ShareGenerator galleryId={galleryId} username={photographers.docs[0].username as string} initialLinks={shareLinks} />
 
             <div className="p-4 border rounded-lg bg-card shadow-sm">
                 <div className="flex items-center text-sm font-medium mb-3">

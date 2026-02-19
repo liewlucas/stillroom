@@ -16,6 +16,11 @@ export const ShareLinks: CollectionConfig = {
             unique: true,
         },
         {
+            name: 'slug',
+            type: 'text',
+            unique: true,
+        },
+        {
             name: 'expires_at',
             type: 'date',
         },
