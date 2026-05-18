@@ -4,6 +4,7 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getPayloadClient } from '@/lib/data';
 import { auth } from '@clerk/nextjs/server';
+import { getPhotoR2Key, PhotoVariant } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +13,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
 
     const searchParams = req.nextUrl.searchParams;
     const shareToken = searchParams.get('token');
+    const requestedVariant = searchParams.get('variant');
+    const variant: PhotoVariant = requestedVariant === 'web' || requestedVariant === 'full'
+        ? requestedVariant
+        : 'high';
 
     if (!photoId) {
         return NextResponse.json({ error: 'Missing Photo ID' }, { status: 400 });
@@ -21,24 +26,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         const payload = await getPayloadClient();
 
         // 1. Fetch Photo Metadata
-        let photo;
+        let photo = null;
         try {
-            // Try treating photoId as a direct Payload ID first
             photo = await payload.findByID({
                 collection: 'photos',
                 id: photoId
             });
         } catch {
-            // If failed (e.g. invalid ID format or not found), try searching by R2 key (legacy/fallback)
-            const photos = await payload.find({
-                collection: 'photos',
-                where: {
-                    r2_key: { contains: photoId }
-                }
-            });
-            if (photos.docs.length > 0) {
-                photo = photos.docs[0];
-            }
+            photo = null;
         }
 
         if (!photo) {
@@ -100,9 +95,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         }
 
         // 4. Generate Signed URL
+        const key = getPhotoR2Key(photo, variant);
+        if (!key) {
+            return NextResponse.json({ error: 'Photo file not found' }, { status: 404 });
+        }
+
         const command = new GetObjectCommand({
             Bucket: R2_BUCKET,
-            Key: photo.r2_key as string,
+            Key: key,
         });
 
         const url = await getSignedUrl(r2, command, { expiresIn: 60 });
