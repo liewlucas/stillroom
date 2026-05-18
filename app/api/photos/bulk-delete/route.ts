@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
 import { r2, R2_BUCKET } from '@/lib/r2';
 import { DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { getAllPhotoR2Keys } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
 
@@ -58,7 +59,9 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. Delete from R2
-        const r2Keys = photosToDelete.docs.map(p => ({ Key: p.r2_key }));
+        const r2Keys = photosToDelete.docs.flatMap((photo) =>
+            getAllPhotoR2Keys(photo).map((Key) => ({ Key }))
+        );
 
         if (r2Keys.length > 0) {
             const deleteCommand = new DeleteObjectsCommand({
