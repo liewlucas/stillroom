@@ -16,7 +16,9 @@ export function Photo({ photoId, token, onClick, className }: PhotoProps) {
         let isMounted = true;
         const fetchUrl = async () => {
             try {
-                const query = token ? `?token=${token}` : '';
+                const params = new URLSearchParams({ variant: 'web' });
+                if (token) params.set('token', token);
+                const query = `?${params.toString()}`;
                 const res = await fetch(`/api/photos/${photoId}/download${query}`);
                 if (res.ok) {
                     const data = await res.json();
