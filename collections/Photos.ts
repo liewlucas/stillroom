@@ -17,20 +17,64 @@ export const Photos: CollectionConfig = {
         },
         {
             name: 'r2_key',
+            label: 'Full-resolution R2 key',
             type: 'text',
             required: true,
         },
         {
+            name: 'web_r2_key',
+            type: 'text',
+        },
+        {
+            name: 'high_res_r2_key',
+            type: 'text',
+        },
+        {
             name: 'width',
+            label: 'Original width',
             type: 'number',
         },
         {
             name: 'height',
+            label: 'Original height',
+            type: 'number',
+        },
+        {
+            name: 'web_width',
+            type: 'number',
+        },
+        {
+            name: 'web_height',
+            type: 'number',
+        },
+        {
+            name: 'high_res_width',
+            type: 'number',
+        },
+        {
+            name: 'high_res_height',
             type: 'number',
         },
         {
             name: 'file_size',
+            label: 'Original file size',
             type: 'number',
+        },
+        {
+            name: 'web_file_size',
+            type: 'number',
+        },
+        {
+            name: 'high_res_file_size',
+            type: 'number',
+        },
+        {
+            name: 'original_filename',
+            type: 'text',
+        },
+        {
+            name: 'content_type',
+            type: 'text',
         },
     ],
 };
