@@ -24,7 +24,7 @@ interface UploadFile extends File {
 
 interface UploadStatus {
     id: string;
-    status: 'pending' | 'signing' | 'uploading' | 'optimizing' | 'completed' | 'error';
+    status: 'pending' | 'preparing' | 'uploading' | 'completed' | 'error';
     progress: number;
     error?: string;
 }
@@ -100,51 +100,18 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
         };
 
         try {
-            setStatus({ status: 'signing', progress: 10 });
-            const signRes = await fetch('/api/uploads/sign', {
-                method: 'POST',
-                body: JSON.stringify({
-                    projectId,
-                    filename: file.name,
-                    contentType: file.type,
-                    size: file.size
-                })
-            });
-
-            if (!signRes.ok) throw new Error('Failed to sign');
-            const { uploadUrl, key } = await signRes.json();
+            setStatus({ status: 'preparing', progress: 10 });
+            const formData = new FormData();
+            formData.append('projectId', projectId);
+            formData.append('file', file, file.name);
 
             setStatus({ status: 'uploading', progress: 30 });
-            const uploadRes = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
-                headers: { 'Content-Type': file.type }
+            const uploadRes = await fetch('/api/photos/upload', {
+                method: 'POST',
+                body: formData,
             });
 
             if (!uploadRes.ok) throw new Error('Failed to upload');
-
-            setStatus({ status: 'optimizing', progress: 80 });
-            const img = document.createElement('img');
-            img.src = file.preview;
-            await new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve; // Continue even if image load fails
-                // Safety timeout
-                setTimeout(resolve, 1000); // 1s max wait for dimensions
-            });
-
-            const completeRes = await fetch('/api/photos/complete', {
-                method: 'POST',
-                body: JSON.stringify({
-                    projectId,
-                    r2_key: key,
-                    width: img.naturalWidth,
-                    height: img.naturalHeight,
-                    file_size: file.size
-                })
-            });
-
-            if (!completeRes.ok) throw new Error('Failed to save metadata');
 
             setStatus({ status: 'completed', progress: 100 });
 

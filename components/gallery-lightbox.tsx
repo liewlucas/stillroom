@@ -11,9 +11,10 @@ interface ProjectLightboxProps {
     initialIndex: number;
     onClose: () => void;
     token?: string;
+    variant?: 'web' | 'high' | 'full';
 }
 
-export function GalleryLightbox({ photos, initialIndex, onClose, token }: ProjectLightboxProps) {
+export function GalleryLightbox({ photos, initialIndex, onClose, token, variant = 'web' }: ProjectLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -32,7 +33,9 @@ export function GalleryLightbox({ photos, initialIndex, onClose, token }: Projec
 
         const fetchUrl = async () => {
             try {
-                const query = token ? `?token=${token}` : '';
+                const params = new URLSearchParams({ variant });
+                if (token) params.set('token', token);
+                const query = `?${params.toString()}`;
                 const res = await fetch(`/api/photos/${activePhoto.id}/download${query}`);
                 if (res.ok) {
                     const data = await res.json();
@@ -47,7 +50,7 @@ export function GalleryLightbox({ photos, initialIndex, onClose, token }: Projec
 
         fetchUrl();
         return () => { isMounted = false; };
-    }, [activePhoto]);
+    }, [activePhoto, token, variant]);
 
     const handleNext = useCallback(() => {
         setCurrentIndex((prev) => (prev + 1) % photos.length);

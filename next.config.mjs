@@ -4,6 +4,9 @@ import { withPayload } from '@payloadcms/next/withPayload';
 const nextConfig = {
     // OpenNext / Cloudflare configuration
     // (If using next-on-pages, this might be standard)
+    experimental: {
+        proxyClientMaxBodySize: '60mb',
+    },
 };
 
 export default withPayload(nextConfig);

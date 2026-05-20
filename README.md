@@ -239,15 +239,13 @@ Temporary sharing links with:
 - `DELETE /api/galleries/[galleryId]` - Delete gallery
 
 ### Photo Operations
-- `POST /api/photos/upload` - Upload photos
-- `POST /api/photos/complete` - Complete upload
+- `POST /api/photos/upload` - Upload photos and generate variants
 - `GET /api/photos/[photoId]/download` - Download photo
 - `POST /api/photos/bulk-download` - Download multiple photos as ZIP
 - `DELETE /api/photos/bulk-delete` - Delete multiple photos
 
 ### Sharing
 - `POST /api/share` - Generate share link
-- `GET /api/uploads/sign` - Get presigned S3 URL
 
 ## Contributing
 

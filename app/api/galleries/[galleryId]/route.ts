@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
 import { r2, R2_BUCKET } from '@/lib/r2';
 import { DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { getAllPhotoR2Keys } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
 
@@ -60,7 +61,9 @@ export async function DELETE(
         });
 
         if (photos.docs.length > 0) {
-            const r2Keys = photos.docs.map(p => ({ Key: p.r2_key }));
+            const r2Keys = photos.docs.flatMap((photo) =>
+                getAllPhotoR2Keys(photo).map((Key) => ({ Key }))
+            );
 
             // Delete from R2
             try {
@@ -95,7 +98,13 @@ export async function DELETE(
             console.log(`[API/galleries/delete] Deleted photo records from DB`);
         }
 
-        // 3. Delete Gallery
+        // 3. Delete Share Links
+        await payload.delete({
+            collection: 'share_links',
+            where: { gallery: { equals: galleryId } },
+        });
+
+        // 4. Delete Gallery
         await payload.delete({
             collection: 'galleries',
             id: galleryId,

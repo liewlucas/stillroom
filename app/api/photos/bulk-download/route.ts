@@ -5,8 +5,18 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { r2, R2_BUCKET } from '@/lib/r2';
 import { auth } from '@clerk/nextjs/server';
+import { getPhotoR2Key } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
+
+function getHighResFilename(photo: { id?: unknown; original_filename?: unknown }) {
+    const fallback = `photo-${String(photo.id || 'download')}`;
+    const originalFilename = typeof photo.original_filename === 'string' && photo.original_filename.trim()
+        ? photo.original_filename
+        : fallback;
+    const basename = originalFilename.replace(/\.[^/.]+$/, '') || fallback;
+    return `${basename}.jpg`;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -64,13 +74,17 @@ export async function POST(req: NextRequest) {
         (async () => {
             try {
                 for (const photo of result.docs) {
-                    const command = new GetObjectCommand({ Bucket: R2_BUCKET, Key: photo.r2_key });
+                    const key = getPhotoR2Key(photo, 'high');
+                    if (!key) {
+                        throw new Error(`Missing high-res variant for photo ${photo.id}`);
+                    }
+
+                    const command = new GetObjectCommand({ Bucket: R2_BUCKET, Key: key });
                     try {
                         const response = await r2.send(command);
                         if (response.Body) {
                             const bodyStream = response.Body as unknown as Readable;
-                            const filename = photo.filename || `photo-${photo.id}.jpg`;
-                            archive.append(bodyStream, { name: filename });
+                            archive.append(bodyStream, { name: getHighResFilename(photo) });
                         }
                     } catch (e) {
                         console.error(`Failed to fetch photo ${photo.id}`, e);
