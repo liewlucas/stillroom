@@ -3,10 +3,10 @@ import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Photographers } from './collections/Photographers';
-import { Galleries } from './collections/Galleries';
-import { Photos } from './collections/Photos';
-import { ShareLinks } from './collections/ShareLinks';
+import { Photographers } from './collections/Photographers.ts';
+import { Galleries } from './collections/Galleries.ts';
+import { Photos } from './collections/Photos.ts';
+import { ShareLinks } from './collections/ShareLinks.ts';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -25,5 +25,6 @@ export default buildConfig({
         pool: {
             connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
         },
+        push: true, // Warning: Temporarily set to true to create tables in production. Change back to process.env.NODE_ENV !== 'production' later!
     }),
 });
