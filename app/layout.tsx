@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'Stillroom',
+  title: 'stillRoom',
   description: 'Photo Delivery Platform',
 };
 

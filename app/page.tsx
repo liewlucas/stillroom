@@ -447,18 +447,8 @@ export default function LandingPage() {
             className="flex items-center gap-2 font-bold text-lg tracking-tight"
             style={{ color: c.text }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="2" y="2" width="20" height="20" rx="4" stroke={c.text} strokeWidth="1.5" />
-              <circle cx="9" cy="9" r="2" stroke={c.text} strokeWidth="1.5" />
-              <path
-                d="M2 16l5-4 4 3 3-2 8 6"
-                stroke={c.text}
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Stillroom
+            <img src="/stillroom-logo.jpeg" alt="stillRoom" className="w-6 h-6 rounded-sm object-cover" />
+            stillRoom
           </Link>
 
           <div
@@ -817,7 +807,7 @@ export default function LandingPage() {
         className="py-8 text-center text-sm"
         style={{ borderTop: `1px solid ${c.border}`, color: c.textMuted }}
       >
-        <p>&copy; {new Date().getFullYear()} Stillroom. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} stillRoom. All rights reserved.</p>
       </footer>
     </div>
   );

@@ -18,8 +18,8 @@ export function Navbar() {
             <div className="flex h-14 items-center justify-between px-4 md:px-6">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-                    <div className="h-5 w-5 bg-primary rounded-sm" />
-                    Stillroom
+                    <img src="/stillroom-logo.jpeg" alt="stillRoom" className="w-6 h-6 rounded-sm object-cover" />
+                    stillRoom
                 </Link>
 
                 {/* Desktop nav links */}

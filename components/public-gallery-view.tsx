@@ -164,7 +164,7 @@ export function PublicGalleryView({ gallery, photographer, photos, token, galler
             {/* Footer */}
             <footer className="py-8 text-center border-t">
                 <p className="text-xs text-muted-foreground">
-                    Delivered by <span className="font-semibold text-foreground">Stillroom</span>
+                    Delivered by <span className="font-semibold text-foreground">stillRoom</span>
                 </p>
             </footer>
 

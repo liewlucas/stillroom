@@ -1,10 +1,10 @@
-# Stillroom
+# stillRoom
 
-A professional photography gallery management and sharing platform built for photographers to securely deliver photos to clients and showcase their work.
+A platform for delivering photos beautifully and easily.
 
 ## Overview
 
-Stillroom is a modern, full-stack web application that enables photographers to:
+stillRoom is a modern, full-stack web application that enables photographers to:
 - Create and manage photo galleries
 - Upload and organize photos with automatic metadata extraction
 - Share galleries via public URLs or secure, expiring share links
