@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { SignInButton, SignUpButton, SignedIn, SignedOut } from "@clerk/nextjs";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useMotionValue,
-  useSpring,
-} from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { Playfair_Display } from "next/font/google";
+
+export const dynamic = "force-dynamic";
+
+const serif = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+  display: "swap",
+});
 
 // ─── Palette ───────────────────────────────────────────────
 const c = {
@@ -25,35 +31,7 @@ const c = {
   border: "#D0D9CA",
 };
 
-const EASE: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
-
-// ─── Reusable animation variants ───────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (delay: number = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, delay, ease: EASE },
-  }),
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.1 },
-  },
-};
-
-const staggerItem = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: EASE },
-  },
-};
-
-// ─── Section wrapper with scroll reveal ────────────────────
+// ─── Scroll reveal ─────────────────────────────────────────
 function Reveal({
   children,
   className = "",
@@ -65,11 +43,10 @@ function Reveal({
 }) {
   return (
     <motion.div
-      initial="hidden"
-      whileInView="visible"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      custom={delay}
-      variants={fadeUp}
+      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
     >
       {children}
@@ -77,275 +54,111 @@ function Reveal({
   );
 }
 
-// ─── Mock gallery hero visual ──────────────────────────────
-function HeroGalleryMock() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
-
-  useEffect(() => {
-    const handleMouse = (e: MouseEvent) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
-      const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
-      mouseX.set(x * 12);
-      mouseY.set(y * 8);
-    };
-    window.addEventListener("mousemove", handleMouse);
-    return () => window.removeEventListener("mousemove", handleMouse);
-  }, [mouseX, mouseY]);
-
-  const photos = [
-    { color: "#8DB580", icon: "mountain", label: "Summit view" },
-    { color: "#6BA6D9", icon: "wave", label: "Beach sunset" },
-    { color: "#C97C5D", icon: "tent", label: "Camp night" },
-    { color: "#D4A97A", icon: "road", label: "Road trip" },
-    { color: "#7BAFAF", icon: "tree", label: "Forest trail" },
-    { color: "#B8957A", icon: "city", label: "City walk" },
-  ];
-
-  const avatars = [
-    { color: "#C97C5D", initial: "S" },
-    { color: "#6BA6D9", initial: "E" },
-    { color: "#8DB580", initial: "M" },
-  ];
-
-  const IconSvg = ({ type }: { type: string }) => {
-    switch (type) {
-      case "mountain":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M4 26L14 8L20 18L24 14L28 26H4Z" fill="white" fillOpacity="0.4" />
-            <path d="M4 26L14 8L20 18" stroke="white" strokeOpacity="0.6" strokeWidth="1.5" />
-            <path d="M20 18L24 14L28 26" stroke="white" strokeOpacity="0.6" strokeWidth="1.5" />
-          </svg>
-        );
-      case "wave":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="22" cy="10" r="4" fill="white" fillOpacity="0.4" />
-            <path d="M4 20C8 16 12 24 16 20C20 16 24 24 28 20" stroke="white" strokeOpacity="0.6" strokeWidth="1.5" />
-            <path d="M4 24C8 20 12 28 16 24C20 20 24 28 28 24" stroke="white" strokeOpacity="0.4" strokeWidth="1.5" />
-          </svg>
-        );
-      case "tent":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M16 6L6 26H26L16 6Z" fill="white" fillOpacity="0.3" />
-            <path d="M16 6L6 26H26L16 6Z" stroke="white" strokeOpacity="0.6" strokeWidth="1.5" />
-            <path d="M13 26L16 18L19 26" stroke="white" strokeOpacity="0.5" strokeWidth="1.5" />
-          </svg>
-        );
-      case "road":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M10 28L14 4H18L22 28" stroke="white" strokeOpacity="0.5" strokeWidth="1.5" />
-            <path d="M16 8V12M16 16V20M16 24V28" stroke="white" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="2 4" />
-          </svg>
-        );
-      case "tree":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M16 4L8 16H12L7 26H25L20 16H24L16 4Z" fill="white" fillOpacity="0.3" />
-            <rect x="14" y="24" width="4" height="4" fill="white" fillOpacity="0.4" />
-          </svg>
-        );
-      case "city":
-        return (
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="14" width="8" height="14" rx="1" fill="white" fillOpacity="0.3" />
-            <rect x="14" y="8" width="6" height="20" rx="1" fill="white" fillOpacity="0.35" />
-            <rect x="22" y="12" width="6" height="16" rx="1" fill="white" fillOpacity="0.3" />
-            <rect x="6" y="17" width="2" height="2" rx="0.5" fill="white" fillOpacity="0.5" />
-            <rect x="6" y="22" width="2" height="2" rx="0.5" fill="white" fillOpacity="0.5" />
-            <rect x="16" y="11" width="2" height="2" rx="0.5" fill="white" fillOpacity="0.5" />
-            <rect x="16" y="16" width="2" height="2" rx="0.5" fill="white" fillOpacity="0.5" />
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const rotateX = useTransform(springY, [-8, 8], [2, -2]);
-  const rotateY = useTransform(springX, [-12, 12], [-3, 3]);
+// ─── Parallax image ────────────────────────────────────────
+function ParallaxImage({
+  src,
+  alt,
+  className = "",
+  speed = 0.12,
+  sizes = "(max-width: 768px) 100vw, 50vw",
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  speed?: number;
+  sizes?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const y = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [`-${speed * 100}%`, `${speed * 100}%`]
+  );
 
   return (
-    <motion.div
-      ref={containerRef}
-      className="relative w-full max-w-[560px] mx-auto"
-      style={{ perspective: 800 }}
-    >
-      {/* Browser frame */}
-      <motion.div
-        style={{ x: springX, y: springY, rotateX, rotateY }}
-        className="relative rounded-2xl overflow-hidden shadow-xl"
-        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.4, ease: EASE }}
-      >
-        {/* Title bar */}
-        <div
-          className="flex items-center gap-2 px-4 py-3"
-          style={{ background: c.card, borderBottom: `1px solid ${c.border}` }}
-        >
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ background: "#FF605C" }} />
-            <div className="w-3 h-3 rounded-full" style={{ background: "#FFBD44" }} />
-            <div className="w-3 h-3 rounded-full" style={{ background: "#00CA4E" }} />
-          </div>
-          <div
-            className="flex-1 text-center text-xs font-medium rounded-md py-1 mx-8"
-            style={{ background: c.softAlt, color: c.textMuted }}
-          >
-            stillroom.app
-          </div>
-        </div>
-
-        {/* App content */}
-        <div className="p-5 pb-6" style={{ background: c.bg }}>
-          {/* Album header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="text-sm font-bold" style={{ color: c.text }}>
-                Japan Road Trip
-              </h4>
-              <p className="text-xs mt-0.5" style={{ color: c.textMuted }}>
-                48 photos &middot; 5 contributors
-              </p>
-            </div>
-            <div className="flex items-center">
-              <div className="flex -space-x-2">
-                {avatars.map((a, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white border-2"
-                    style={{ background: a.color, borderColor: c.bg, zIndex: 3 - i }}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.8 + i * 0.1 }}
-                  >
-                    {a.initial}
-                  </motion.div>
-                ))}
-              </div>
-              <motion.span
-                className="text-xs font-medium ml-2"
-                style={{ color: c.textMuted }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.1 }}
-              >
-                +4
-              </motion.span>
-            </div>
-          </div>
-
-          {/* Photo grid */}
-          <div className="grid grid-cols-3 gap-2">
-            {photos.map((photo, i) => (
-              <motion.div
-                key={i}
-                className="aspect-[4/3] rounded-lg flex items-center justify-center relative overflow-hidden"
-                style={{ background: photo.color }}
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 + i * 0.08, duration: 0.5 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <IconSvg type={photo.icon} />
-                <span className="absolute bottom-1 left-1.5 text-[9px] font-medium text-white/70">
-                  {photo.label}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+    <div ref={ref} className={`overflow-hidden ${className}`}>
+      <motion.div className="relative w-full h-[115%]" style={{ y }}>
+        <Image src={src} alt={alt} fill className="object-cover" sizes={sizes} />
       </motion.div>
-
-      {/* Floating toast notification */}
-      <motion.div
-        className="absolute -right-4 top-24 md:-right-16 rounded-xl px-4 py-2.5 shadow-lg flex items-center gap-2.5 z-10"
-        style={{ background: c.card, border: `1px solid ${c.border}` }}
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.4, duration: 0.5 }}
-      >
-        <div
-          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-          style={{ background: "#6BA6D9" }}
-        >
-          E
-        </div>
-        <div>
-          <p className="text-xs font-semibold" style={{ color: c.text }}>Emma added 12 photos</p>
-          <p className="text-[10px]" style={{ color: c.textMuted }}>Just now</p>
-        </div>
-      </motion.div>
-
-      {/* Floating album badge */}
-      <motion.div
-        className="absolute -left-4 bottom-16 md:-left-12 rounded-xl px-4 py-2.5 shadow-lg z-10"
-        style={{ background: c.card, border: `1px solid ${c.border}` }}
-        initial={{ opacity: 0, x: -30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1.6, duration: 0.5 }}
-      >
-        <p className="text-[10px] font-medium" style={{ color: c.textMuted }}>Shared album</p>
-        <p className="text-xs font-bold" style={{ color: c.text }}>Mountain Escape</p>
-        <div className="flex -space-x-1.5 mt-1.5">
-          {["#C97C5D", "#8DB580", "#6BA6D9"].map((col, i) => (
-            <div
-              key={i}
-              className="w-5 h-5 rounded-full border-2"
-              style={{ background: col, borderColor: c.card, zIndex: 3 - i }}
-            />
-          ))}
-        </div>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
-// ─── Animated counter ──────────────────────────────────────
-function Counter({ target, suffix = "" }: { target: string; suffix?: string }) {
-  const [display, setDisplay] = useState("0");
-  const ref = useRef<HTMLSpanElement>(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
+// ─── Nav ───────────────────────────────────────────────────
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          const num = parseInt(target.replace(/\D/g, ""));
-          const duration = 1200;
-          const start = Date.now();
-          const tick = () => {
-            const elapsed = Date.now() - start;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(num * eased);
-            setDisplay(current.toLocaleString());
-            if (progress < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target, hasAnimated]);
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <span ref={ref}>
-      {display}
-      {suffix}
-    </span>
+    <motion.nav
+      className="fixed top-0 w-full z-50 transition-all duration-500"
+      style={{
+        background: scrolled ? `${c.bg}F0` : "transparent",
+        backdropFilter: scrolled ? "blur(12px)" : "none",
+        borderBottom: scrolled
+          ? `1px solid ${c.border}`
+          : "1px solid transparent",
+      }}
+      initial={{ y: -80 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-10 py-5">
+        <Link href="/" className="flex items-center gap-2.5">
+          <img
+            src="/stillroom-logo.jpeg"
+            alt="stillRoom"
+            className="w-7 h-7 rounded-sm object-cover"
+          />
+          <span
+            className="font-bold text-lg tracking-tight transition-colors duration-500"
+            style={{ color: scrolled ? c.text : "#fff" }}
+          >
+            stillRoom
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-4">
+          <SignedIn>
+            <Link href="/dashboard/galleries">
+              <button
+                className="px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:opacity-90"
+                style={{ background: c.cta, borderRadius: 6 }}
+              >
+                My Galleries
+              </button>
+            </Link>
+          </SignedIn>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button
+                className="px-4 py-2.5 text-sm font-medium transition-colors duration-500"
+                style={{ color: scrolled ? c.text : "#fff" }}
+              >
+                Log in
+              </button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button
+                className="px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:opacity-90"
+                style={{ background: c.cta, borderRadius: 6 }}
+              >
+                Get Started
+              </button>
+            </SignUpButton>
+          </SignedOut>
+        </div>
+      </div>
+    </motion.nav>
   );
 }
 
@@ -356,458 +169,534 @@ export default function LandingPage() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-
-  const steps = [
-    {
-      num: "01",
-      title: "Create a shared album",
-      desc: "Start a new album for your trip, event, or adventure. Give it a name and you\u2019re ready.",
-    },
-    {
-      num: "02",
-      title: "Invite your group",
-      desc: "Share the link with friends, family, or fellow travellers. No accounts needed to view.",
-    },
-    {
-      num: "03",
-      title: "Everyone uploads",
-      desc: "The whole group adds their photos to one place. Every angle, every moment, all together.",
-    },
-  ];
-
-  const features = [
-    {
-      title: "Group uploads",
-      desc: "Everyone in the group can upload their own photos to the same shared album.",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <circle cx="10" cy="8" r="4" stroke={c.cta} strokeWidth="1.5" />
-          <circle cx="18" cy="8" r="4" stroke={c.cta} strokeWidth="1.5" />
-          <path d="M4 22c0-4 4-6 8-6h4c4 0 8 2 8 6" stroke={c.cta} strokeWidth="1.5" />
-        </svg>
-      ),
-    },
-    {
-      title: "Share with anyone",
-      desc: "Send a link to view or contribute. Works on any device, no sign-up required to view.",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M10 14h8M18 14l-3-3M18 14l-3 3" stroke={c.accent} strokeWidth="1.5" strokeLinecap="round" />
-          <rect x="3" y="6" width="22" height="16" rx="3" stroke={c.accent} strokeWidth="1.5" />
-        </svg>
-      ),
-    },
-    {
-      title: "Download & collect",
-      desc: "Download individual photos or the entire album. Keep the memories that matter most.",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M14 4v14M14 18l-4-4M14 18l4-4" stroke={c.cta} strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M4 20v2a2 2 0 002 2h16a2 2 0 002-2v-2" stroke={c.cta} strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      ),
-    },
-    {
-      title: "Privacy controls",
-      desc: "Choose who can view, upload, or download. Keep your shared memories secure and private.",
-      icon: (
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <rect x="6" y="12" width="16" height="12" rx="2" stroke={c.accent} strokeWidth="1.5" />
-          <path d="M10 12V8a4 4 0 118 0v4" stroke={c.accent} strokeWidth="1.5" strokeLinecap="round" />
-          <circle cx="14" cy="18" r="1.5" fill={c.accent} />
-        </svg>
-      ),
-    },
-  ];
-
-  const useCases = [
-    "Road trips",
-    "Hiking & camping",
-    "Weddings & events",
-    "City breaks",
-    "Family reunions",
-    "Festival weekends",
-  ];
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const heroTextY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const heroOverlay = useTransform(scrollYProgress, [0, 1], [0.3, 0.65]);
 
   return (
-    <div className="min-h-screen" style={{ background: c.bg, color: c.text }}>
-      {/* ── Nav ─────────────────────────────────────────── */}
-      <motion.nav
-        className="fixed top-0 w-full z-50 backdrop-blur-md"
-        style={{ background: `${c.bg}E6`, borderBottom: `1px solid ${c.border}` }}
-        initial={{ y: -80 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-bold text-lg tracking-tight"
-            style={{ color: c.text }}
-          >
-            <img src="/stillroom-logo.jpeg" alt="stillRoom" className="w-6 h-6 rounded-sm object-cover" />
-            stillRoom
-          </Link>
+    <div className={`min-h-screen ${serif.variable}`} style={{ background: c.bg, color: c.text }}>
+      <Nav />
 
-          <div
-            className="hidden md:flex items-center gap-8 text-sm font-medium"
-            style={{ color: c.textMuted }}
-          >
-            <a href="#how-it-works" className="hover:opacity-70 transition-opacity">
-              How it works
-            </a>
-            <a href="#features" className="hover:opacity-70 transition-opacity">
-              Features
-            </a>
-          </div>
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative h-screen overflow-hidden">
+        <motion.div className="absolute inset-0" style={{ scale: heroScale }}>
+          <Image
+            src="/images/adventure.jpg"
+            alt="Adventure begins"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+        </motion.div>
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background: useTransform(
+              heroOverlay,
+              (v) => `rgba(31,53,43,${v})`
+            ),
+          }}
+        />
 
-          <div className="flex items-center gap-3">
-            <SignedIn>
-              <Link href="/dashboard/galleries">
-                <button
-                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-colors"
-                  style={{ background: c.cta }}
-                  onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                  onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
-                >
-                  My Galleries
-                </button>
-              </Link>
-            </SignedIn>
+        <motion.div
+          className="relative z-10 h-full flex flex-col justify-end pb-16 md:pb-24 px-6 md:px-10 max-w-7xl mx-auto"
+          style={{ y: heroTextY }}
+        >
+          <motion.h1
+            className="text-4xl md:text-6xl lg:text-7xl leading-[1.05] text-white mb-5 max-w-3xl italic"
+            style={{ fontFamily: "var(--font-serif)", fontWeight: 500 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.3,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            Your group&rsquo;s memories,
+            <br />
+            all in one place.
+          </motion.h1>
+
+          <motion.p
+            className="text-base md:text-lg text-white/60 max-w-md mb-8 leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.5,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
+            One shared album for the whole trip. Everyone uploads,
+            everyone sees everything.
+          </motion.p>
+
+          <motion.div
+            className="flex flex-wrap gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.8,
+              delay: 0.7,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
             <SignedOut>
-              <SignInButton mode="modal">
-                <button
-                  className="px-4 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-70"
-                  style={{ color: c.text }}
-                >
-                  Log in
-                </button>
-              </SignInButton>
               <SignUpButton mode="modal">
                 <button
-                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-colors"
-                  style={{ background: c.cta }}
-                  onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                  onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
+                  className="px-7 py-3.5 text-sm font-semibold text-white tracking-wide uppercase transition-all duration-300 hover:opacity-90"
+                  style={{ background: c.cta, borderRadius: 4 }}
                 >
-                  Get Started
+                  Start a shared album
                 </button>
               </SignUpButton>
             </SignedOut>
-          </div>
-        </div>
-      </motion.nav>
-
-      {/* ── Hero ────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative pt-28 pb-12 md:pt-40 md:pb-20 overflow-hidden">
-        <motion.div style={{ y: heroY, opacity: heroOpacity }}>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="grid md:grid-cols-2 gap-12 md:gap-8 items-center">
-              {/* Left: copy */}
-              <div className="max-w-lg">
-                <motion.div
-                  className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium mb-6"
-                  style={{ background: c.soft, color: c.textMuted }}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
+            <SignedIn>
+              <Link href="/dashboard/galleries">
+                <button
+                  className="px-7 py-3.5 text-sm font-semibold text-white tracking-wide uppercase transition-all duration-300 hover:opacity-90"
+                  style={{ background: c.cta, borderRadius: 4 }}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full mr-2" style={{ background: c.cta }} />
-                  Free to use &middot; No account needed to view
-                </motion.div>
+                  Go to Galleries
+                </button>
+              </Link>
+            </SignedIn>
+          </motion.div>
+        </motion.div>
 
-                <motion.h1
-                  className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold leading-[1.1] tracking-tight mb-5"
-                  style={{ color: c.text }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.6 }}
-                >
-                  Collect every photo from the adventure.
-                </motion.h1>
-
-                <motion.p
-                  className="text-lg leading-relaxed mb-8"
-                  style={{ color: c.textMuted }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.35, duration: 0.6 }}
-                >
-                  One shared album for your whole group. No more chasing friends for photos
-                  after the trip &mdash; everyone uploads to the same place.
-                </motion.p>
-
-                <motion.div
-                  className="flex flex-wrap gap-3"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                >
-                  <SignedOut>
-                    <SignUpButton mode="modal">
-                      <button
-                        className="px-7 py-3.5 rounded-full text-base font-semibold text-white transition-colors shadow-md"
-                        style={{ background: c.cta }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                        onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
-                      >
-                        Start a shared album
-                      </button>
-                    </SignUpButton>
-                  </SignedOut>
-                  <SignedIn>
-                    <Link href="/dashboard/galleries">
-                      <button
-                        className="px-7 py-3.5 rounded-full text-base font-semibold text-white transition-colors shadow-md"
-                        style={{ background: c.cta }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                        onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
-                      >
-                        Go to Galleries
-                      </button>
-                    </Link>
-                  </SignedIn>
-                  <a href="#how-it-works">
-                    <button
-                      className="px-7 py-3.5 rounded-full text-base font-medium transition-colors"
-                      style={{ color: c.text, background: c.softAlt }}
-                    >
-                      See how it works
-                    </button>
-                  </a>
-                </motion.div>
-              </div>
-
-              {/* Right: mock gallery */}
-              <div className="relative">
-                <HeroGalleryMock />
-              </div>
-            </div>
-          </div>
+        {/* Scroll line */}
+        <motion.div
+          className="absolute bottom-6 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+        >
+          <motion.div
+            className="w-px h-10 bg-white/40"
+            animate={{ scaleY: [0, 1, 0] }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            style={{ transformOrigin: "top" }}
+          />
         </motion.div>
       </section>
 
-      {/* ── Trust strip ─────────────────────────────────── */}
-      <section
-        className="py-12 border-y"
-        style={{ borderColor: c.border, background: c.softAlt }}
-      >
-        <div className="max-w-4xl mx-auto px-6">
-          <motion.div
-            className="flex flex-wrap justify-center gap-8 md:gap-16 text-center"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {[
-              { value: "12000", suffix: "+", label: "Photos shared" },
-              { value: "800", suffix: "+", label: "Group albums" },
-              { value: "3000", suffix: "+", label: "Adventures captured" },
-            ].map((stat) => (
-              <motion.div key={stat.label} variants={staggerItem}>
-                <p className="text-2xl md:text-3xl font-bold" style={{ color: c.text }}>
-                  <Counter target={stat.value} suffix={stat.suffix} />
-                </p>
-                <p className="text-sm mt-1" style={{ color: c.textMuted }}>
-                  {stat.label}
-                </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── How it works ────────────────────────────────── */}
-      <section id="how-it-works" className="py-20 md:py-28">
-        <div className="max-w-4xl mx-auto px-6">
+      {/* ── Story section (Image 1 style) ────────────────── */}
+      <section className="py-24 md:py-40 px-6 md:px-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Large serif heading */}
           <Reveal>
-            <p
-              className="text-sm font-semibold uppercase tracking-widest mb-3"
-              style={{ color: c.cta }}
+            <h2
+              className="text-center text-3xl md:text-5xl lg:text-6xl font-medium mb-4 italic"
+              style={{ fontFamily: "var(--font-serif)", color: c.text }}
             >
-              How it works
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-16" style={{ color: c.text }}>
-              Three steps. Every photo. One place.
+              After sharing thousands of moments
             </h2>
+            <p
+              className="text-center text-sm md:text-base mb-24 md:mb-32"
+              style={{ color: c.textMuted }}
+            >
+              we know what really matters
+            </p>
           </Reveal>
 
-          <motion.div
-            className="grid md:grid-cols-3 gap-8 relative"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {/* Connector line (desktop) */}
-            <div
-              className="hidden md:block absolute top-8 left-[16.66%] right-[16.66%] h-[2px]"
-              style={{ background: c.border }}
-            />
-
-            {steps.map((step, i) => (
-              <motion.div
-                key={i}
-                className="relative text-center md:text-left"
-                variants={staggerItem}
-              >
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold mb-5 mx-auto md:mx-0 relative z-10"
-                  style={{ background: c.soft, color: c.text }}
+          {/* Asymmetric text + tall image */}
+          <div className="grid md:grid-cols-12 gap-8 md:gap-6 items-start">
+            {/* Left: editorial text */}
+            <div className="md:col-span-5 md:pt-8">
+              <Reveal>
+                <p
+                  className="text-base md:text-lg leading-[1.8] mb-6"
+                  style={{ color: c.text }}
                 >
-                  {step.num}
-                </div>
-                <h3 className="text-lg font-bold mb-2" style={{ color: c.text }}>
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: c.textMuted }}>
-                  {step.desc}
+                  stillRoom is a shared photo platform built for the moments
+                  that matter most. The trips, the reunions, the celebrations,
+                  the adventures you take together.
                 </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              </Reveal>
 
-      {/* ── Features ────────────────────────────────────── */}
-      <section id="features" className="py-20 md:py-28" style={{ background: c.softAlt }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <Reveal>
-            <p
-              className="text-sm font-semibold uppercase tracking-widest mb-3"
-              style={{ color: c.accent }}
-            >
-              Features
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-14" style={{ color: c.text }}>
-              Everything your group needs
-            </h2>
-          </Reveal>
-
-          <motion.div
-            className="grid md:grid-cols-2 gap-5"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {features.map((f, i) => (
-              <motion.div
-                key={i}
-                className="rounded-2xl p-6 transition-shadow hover:shadow-md"
-                style={{ background: c.card, border: `1px solid ${c.border}` }}
-                variants={staggerItem}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: c.soft }}
+              <Reveal delay={0.08}>
+                <p
+                  className="text-base md:text-lg leading-[1.8] mb-6"
+                  style={{ color: c.text }}
                 >
-                  {f.icon}
-                </div>
-                <h3 className="text-lg font-bold mb-2" style={{ color: c.text }}>
-                  {f.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: c.textMuted }}>
-                  {f.desc}
+                  So many groups come back from a trip with photos scattered
+                  across ten different phones. Everyone promises to share,
+                  but it never quite happens...
                 </p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              </Reveal>
 
-      {/* ── Use cases ───────────────────────────────────── */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <Reveal>
-            <p
-              className="text-sm font-semibold uppercase tracking-widest mb-3"
-              style={{ color: c.cta }}
-            >
-              Perfect for
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold mb-12" style={{ color: c.text }}>
-              Any adventure, any group
-            </h2>
-          </Reveal>
+              <Reveal delay={0.16}>
+                <p
+                  className="text-lg md:text-xl leading-[1.7] font-bold mb-8"
+                  style={{ color: c.text }}
+                >
+                  They don&rsquo;t want another group chat full of
+                  compressed images. They want one beautiful place where
+                  everyone&rsquo;s photos live together.
+                </p>
+              </Reveal>
 
-          <motion.div
-            className="flex flex-wrap justify-center gap-3"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {useCases.map((uc) => (
-              <motion.span
-                key={uc}
-                className="px-5 py-2.5 rounded-full text-sm font-medium"
-                style={{ background: c.soft, color: c.text }}
-                variants={staggerItem}
-                whileHover={{ scale: 1.05 }}
-              >
-                {uc}
-              </motion.span>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+              <Reveal delay={0.24}>
+                <p
+                  className="text-base leading-[1.8] mb-2"
+                  style={{ color: c.textMuted }}
+                >
+                  From road trips across red deserts
+                </p>
+                <p
+                  className="text-base leading-[1.8] mb-2"
+                  style={{ color: c.textMuted }}
+                >
+                  to backyard birthday parties.
+                </p>
+              </Reveal>
 
-      {/* ── Final CTA ───────────────────────────────────── */}
-      <section className="py-24 md:py-32" style={{ background: c.text }}>
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <Reveal>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: c.bg }}>
-              Stop chasing friends for photos.
-            </h2>
-            <p className="text-lg mb-10" style={{ color: `${c.bg}99` }}>
-              Create a shared album and let everyone contribute. It takes seconds.
-            </p>
+              <Reveal delay={0.3}>
+                <p
+                  className="text-base leading-[1.8] mb-2"
+                  style={{ color: c.textMuted }}
+                >
+                  From family holidays in new cities
+                </p>
+                <p
+                  className="text-base leading-[1.8] mb-6"
+                  style={{ color: c.textMuted }}
+                >
+                  to two friends hiking with no plan at all.
+                </p>
+              </Reveal>
 
-            <div className="flex flex-col items-center gap-4">
-              <SignedOut>
-                <SignUpButton mode="modal">
-                  <button
-                    className="px-8 py-4 rounded-full text-base font-semibold transition-colors shadow-lg"
-                    style={{ background: c.cta, color: "#fff" }}
-                    onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                    onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
-                  >
-                    Get Started Free
-                  </button>
-                </SignUpButton>
-              </SignedOut>
-              <SignedIn>
-                <Link href="/dashboard/galleries">
-                  <button
-                    className="px-8 py-4 rounded-full text-base font-semibold transition-colors shadow-lg"
-                    style={{ background: c.cta, color: "#fff" }}
-                    onMouseOver={(e) => (e.currentTarget.style.background = c.ctaHover)}
-                    onMouseOut={(e) => (e.currentTarget.style.background = c.cta)}
-                  >
-                    Go to Galleries
-                  </button>
-                </Link>
-              </SignedIn>
-              <p className="text-xs" style={{ color: `${c.bg}66` }}>
-                Free to use &middot; No credit card required
-              </p>
+              <Reveal delay={0.36}>
+                <p
+                  className="text-base leading-[1.8] mb-6"
+                  style={{ color: c.text }}
+                >
+                  We&rsquo;ve seen every kind of shared memory.
+                </p>
+                <p
+                  className="text-base leading-[1.8] mb-1"
+                  style={{ color: c.text }}
+                >
+                  A shared album isn&rsquo;t just a gallery.
+                </p>
+                <p
+                  className="text-base leading-[1.8] mb-1"
+                  style={{ color: c.text }}
+                >
+                  It&rsquo;s a way of saying: this mattered.
+                </p>
+                <p
+                  className="text-base leading-[1.8]"
+                  style={{ color: c.text }}
+                >
+                  We were here, together.
+                </p>
+              </Reveal>
             </div>
+
+            {/* Right: tall image, offset down */}
+            <div className="md:col-span-6 md:col-start-7">
+              <Reveal delay={0.1}>
+                <ParallaxImage
+                  src="/images/family2.jpg"
+                  alt="Family in flower field"
+                  className="aspect-[3/4] md:aspect-[2/3] rounded-sm relative"
+                />
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Quote section (Image 2 style) ────────────────── */}
+      <section className="py-12 md:py-20 px-6 md:px-10">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-12 gap-6 md:gap-5">
+          {/* Left: large image, full height */}
+          <div className="md:col-span-7">
+            <Reveal>
+              <ParallaxImage
+                src="/images/friends.jpg"
+                alt="Friends sharing a moment"
+                className="aspect-[3/4] md:aspect-auto md:h-[85vh] rounded-sm relative"
+                sizes="(max-width: 768px) 100vw, 58vw"
+              />
+            </Reveal>
+          </div>
+
+          {/* Right: label + quote + smaller image */}
+          <div className="md:col-span-5 flex flex-col justify-center gap-8 md:gap-10 md:pl-6">
+            <Reveal delay={0.15}>
+              <p
+                className="text-xs font-medium uppercase tracking-[0.3em]"
+                style={{ color: c.textMuted }}
+              >
+                Real Moments
+              </p>
+            </Reveal>
+
+            <Reveal delay={0.25}>
+              <div>
+                <p
+                  className="text-2xl md:text-3xl lg:text-4xl leading-[1.3] font-normal mb-1"
+                  style={{ fontFamily: "var(--font-serif)", color: c.text }}
+                >
+                  Unscripted.
+                </p>
+                <p
+                  className="text-2xl md:text-3xl lg:text-4xl leading-[1.3] font-normal mb-1"
+                  style={{ fontFamily: "var(--font-serif)", color: c.text }}
+                >
+                  Unposed.
+                </p>
+                <p
+                  className="text-2xl md:text-3xl lg:text-4xl leading-[1.3] font-normal"
+                  style={{ fontFamily: "var(--font-serif)", color: c.text }}
+                >
+                  Exactly how it felt.
+                </p>
+              </div>
+            </Reveal>
+
+            <Reveal delay={0.35}>
+              <ParallaxImage
+                src="/images/exploring.jpg"
+                alt="Exploring the outdoors"
+                className="aspect-[4/3] rounded-sm relative"
+                speed={0.08}
+              />
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Staggered gallery ────────────────────────────── */}
+      <section className="py-20 md:py-32 px-6 md:px-10">
+        <div className="max-w-7xl mx-auto">
+          <Reveal>
+            <p
+              className="text-xs font-medium uppercase tracking-[0.3em] mb-6"
+              style={{ color: c.cta }}
+            >
+              The Gallery
+            </p>
+          </Reveal>
+
+          <div className="grid md:grid-cols-12 gap-4 md:gap-5">
+            {/* Large left */}
+            <div className="md:col-span-7">
+              <Reveal>
+                <ParallaxImage
+                  src="/images/graduation.jpg"
+                  alt="Graduation celebration"
+                  className="aspect-[16/10] rounded-sm relative"
+                  sizes="(max-width: 768px) 100vw, 58vw"
+                />
+              </Reveal>
+            </div>
+
+            {/* Small right, pushed down */}
+            <div className="md:col-span-5 md:mt-24">
+              <Reveal delay={0.15}>
+                <ParallaxImage
+                  src="/images/family.jpg"
+                  alt="Family walking together"
+                  className="aspect-[4/5] rounded-sm relative"
+                  speed={0.08}
+                />
+              </Reveal>
+            </div>
+
+            {/* Wide bottom, offset left */}
+            <div className="md:col-span-5 md:col-start-2 md:-mt-16">
+              <Reveal delay={0.1}>
+                <ParallaxImage
+                  src="/images/travel.jpg"
+                  alt="Travel sunset"
+                  className="aspect-[3/2] rounded-sm relative"
+                  speed={0.1}
+                />
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Editorial statement ──────────────────────────── */}
+      <section className="py-20 md:py-32 px-6 md:px-10">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <h2
+              className="text-3xl md:text-5xl lg:text-[3.5rem] font-medium leading-[1.2] italic"
+              style={{ fontFamily: "var(--font-serif)", color: c.text }}
+            >
+              No more chasing friends for photos.
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p
+              className="text-base md:text-lg leading-relaxed mt-8 max-w-xl"
+              style={{ color: c.textMuted }}
+            >
+              Create a shared gallery, send the link, and let everyone add
+              their shots. Every angle, every candid, every golden hour moment
+              &mdash; together in one place.
+            </p>
           </Reveal>
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────── */}
-      <footer
-        className="py-8 text-center text-sm"
-        style={{ borderTop: `1px solid ${c.border}`, color: c.textMuted }}
+      {/* ── How it works ─────────────────────────────────── */}
+      <section
+        className="py-20 md:py-32 px-6 md:px-10"
+        style={{ background: c.softAlt }}
       >
-        <p>&copy; {new Date().getFullYear()} stillRoom. All rights reserved.</p>
+        <div className="max-w-6xl mx-auto grid md:grid-cols-12 gap-12 md:gap-8">
+          {/* Left heading */}
+          <div className="md:col-span-4">
+            <Reveal>
+              <p
+                className="text-xs font-medium uppercase tracking-[0.3em] mb-4"
+                style={{ color: c.cta }}
+              >
+                How it works
+              </p>
+              <h2
+                className="text-2xl md:text-3xl font-medium italic"
+                style={{ fontFamily: "var(--font-serif)", color: c.text }}
+              >
+                Simple as
+                <br />
+                it should be.
+              </h2>
+            </Reveal>
+          </div>
+
+          {/* Right steps */}
+          <div className="md:col-span-7 md:col-start-6 space-y-12">
+            {[
+              {
+                num: "01",
+                title: "Create an album",
+                desc: "Name it after your trip, event, or adventure. It takes five seconds.",
+              },
+              {
+                num: "02",
+                title: "Share the link",
+                desc: "Send it to your group. They can view and upload from any device, no account needed.",
+              },
+              {
+                num: "03",
+                title: "Relive it together",
+                desc: "Everyone\u2019s photos, one gallery. Download favourites or the entire collection.",
+              },
+            ].map((step, i) => (
+              <Reveal key={i} delay={i * 0.1}>
+                <div className="flex gap-6 items-start">
+                  <span
+                    className="text-sm font-medium shrink-0 mt-1"
+                    style={{ color: c.border }}
+                  >
+                    {step.num}
+                  </span>
+                  <div>
+                    <h3
+                      className="text-lg font-bold mb-2"
+                      style={{ color: c.text }}
+                    >
+                      {step.title}
+                    </h3>
+                    <p
+                      className="text-base leading-relaxed"
+                      style={{ color: c.textMuted }}
+                    >
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Final CTA ────────────────────────────────────── */}
+      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/images/travel.jpg"
+            alt="The journey"
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: "rgba(31,53,43,0.55)" }}
+          />
+        </div>
+
+        <Reveal className="relative z-10 text-center px-6 max-w-3xl mx-auto">
+          <h2
+            className="text-3xl md:text-5xl lg:text-6xl font-medium text-white leading-tight mb-6 italic"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Start collecting
+            <br />
+            your memories.
+          </h2>
+          <p className="text-base md:text-lg text-white/50 mb-10 max-w-lg mx-auto leading-relaxed">
+            Your next adventure is around the corner. Make sure
+            everyone&rsquo;s photos end up in the same place.
+          </p>
+          <SignedOut>
+            <SignUpButton mode="modal">
+              <button
+                className="px-8 py-4 text-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90"
+                style={{ background: c.cta, borderRadius: 4 }}
+              >
+                Get Started Free
+              </button>
+            </SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <Link href="/dashboard/galleries">
+              <button
+                className="px-8 py-4 text-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90"
+                style={{ background: c.cta, borderRadius: 4 }}
+              >
+                Go to Galleries
+              </button>
+            </Link>
+          </SignedIn>
+        </Reveal>
+      </section>
+
+      {/* ── Footer ───────────────────────────────────────── */}
+      <footer
+        className="py-10 px-6 md:px-10"
+        style={{ borderTop: `1px solid ${c.border}` }}
+      >
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/stillroom-logo.jpeg"
+              alt="stillRoom"
+              className="w-6 h-6 rounded-sm object-cover"
+            />
+            <span className="font-bold text-sm" style={{ color: c.text }}>
+              stillRoom
+            </span>
+          </div>
+          <p className="text-sm" style={{ color: c.textMuted }}>
+            &copy; {new Date().getFullYear()} stillRoom. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   );
