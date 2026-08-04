@@ -1,12 +1,8 @@
 import { withPayload } from '@payloadcms/next/withPayload';
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-    // OpenNext / Cloudflare configuration
-    // (If using next-on-pages, this might be standard)
-    experimental: {
-        proxyClientMaxBodySize: '60mb',
-    },
-};
+// Image bytes go browser -> R2 via presigned PUT, so no route handler ever
+// receives a large request body (Vercel caps those at 4.5MB regardless).
+const nextConfig = {};
 
 export default withPayload(nextConfig);

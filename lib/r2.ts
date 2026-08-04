@@ -11,6 +11,15 @@ export const r2 = new S3Client({
         accessKeyId: accessKeyId || '',
         secretAccessKey: secretAccessKey || '',
     },
+    // R2 does not implement the flexible-checksum headers the SDK adds by default
+    // (x-amz-checksum-crc32). Leaving them on breaks presigned PUT signatures.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
 });
 
 export const R2_BUCKET = process.env.R2_BUCKET_NAME || 'photos';
+
+/** Largest original we accept. Mirrors the copy in the uploader dropzone. */
+export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
+export const ALLOWED_UPLOAD_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

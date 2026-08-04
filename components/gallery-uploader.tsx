@@ -12,7 +12,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, X, UploadCloud, CheckCircle2, Loader2 } from 'lucide-react';
+import { Upload, X, UploadCloud, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { toast } from 'sonner';
@@ -24,9 +24,56 @@ interface UploadFile extends File {
 
 interface UploadStatus {
     id: string;
-    status: 'pending' | 'preparing' | 'uploading' | 'completed' | 'error';
+    status: 'pending' | 'preparing' | 'uploading' | 'processing' | 'completed' | 'error';
     progress: number;
     error?: string;
+}
+
+async function readError(res: Response, fallback: string) {
+    try {
+        const data = await res.json();
+        return typeof data?.error === 'string' ? data.error : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+/**
+ * XHR rather than fetch: it's the only way to observe upload progress, and a
+ * direct-to-R2 PUT of a large original is exactly where a progress bar matters.
+ */
+function putToR2(
+    url: string,
+    file: File,
+    contentType: string,
+    onProgress: (progress: number) => void,
+) {
+    return new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', url);
+        // Must match the Content-Type baked into the presigned signature.
+        xhr.setRequestHeader('Content-Type', contentType);
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                onProgress(Math.round((event.loaded / event.total) * 100));
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve();
+            } else {
+                reject(new Error(`Storage rejected the upload (${xhr.status})`));
+            }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error reaching storage'));
+        xhr.onabort = () => reject(new Error('Upload cancelled'));
+        xhr.ontimeout = () => reject(new Error('Upload timed out'));
+
+        xhr.send(file);
+    });
 }
 
 export function GalleryUploader({ projectId }: { projectId: string }) {
@@ -100,34 +147,80 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
         };
 
         try {
-            setStatus({ status: 'preparing', progress: 10 });
-            const formData = new FormData();
-            formData.append('projectId', projectId);
-            formData.append('file', file, file.name);
+            // 1. Ask the server for a presigned PUT. File bytes never go through
+            //    a route handler — Vercel rejects request bodies over 4.5MB.
+            setStatus({ status: 'preparing', progress: 0 });
+            const contentType = file.type || 'image/jpeg';
 
-            setStatus({ status: 'uploading', progress: 30 });
-            const uploadRes = await fetch('/api/photos/upload', {
+            const urlRes = await fetch('/api/photos/upload-url', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId,
+                    filename: file.name,
+                    contentType,
+                    fileSize: file.size,
+                }),
             });
 
-            if (!uploadRes.ok) throw new Error('Failed to upload');
+            if (!urlRes.ok) {
+                throw new Error(await readError(urlRes, 'Could not start upload'));
+            }
+
+            const { uploadUrl, key, photoId } = await urlRes.json();
+
+            // 2. Send the original straight to R2, tracking real progress.
+            setStatus({ status: 'uploading', progress: 0 });
+            await putToR2(uploadUrl, file, contentType, (progress) => {
+                setStatus({ status: 'uploading', progress });
+            });
+
+            // 3. Have the server build variants and record the photo.
+            setStatus({ status: 'processing', progress: 100 });
+            const finalizeRes = await fetch('/api/photos/finalize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId,
+                    photoId,
+                    key,
+                    filename: file.name,
+                    contentType,
+                }),
+            });
+
+            if (!finalizeRes.ok) {
+                throw new Error(await readError(finalizeRes, 'Could not process image'));
+            }
 
             setStatus({ status: 'completed', progress: 100 });
 
         } catch (error) {
             console.error(error);
-            setStatus({ status: 'error', error: 'Failed' });
+            setStatus({
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed',
+            });
         }
     };
 
-    // Monitor upload completion
+    // Monitor upload completion. 'error' is terminal alongside 'completed' —
+    // keying only off 'completed' leaves the dialog stuck when one file fails.
     useEffect(() => {
         if (!isGlobalUploading && files.length > 0) {
-            const allCompleted = files.every(f => uploadStatuses[f.id]?.status === 'completed');
-            if (allCompleted) {
+            const settled = files.every(f => {
+                const status = uploadStatuses[f.id]?.status;
+                return status === 'completed' || status === 'error';
+            });
+            if (!settled) return;
+
+            const failed = files.filter(f => uploadStatuses[f.id]?.status === 'error');
+            const succeeded = files.length - failed.length;
+
+            if (succeeded > 0) router.refresh();
+
+            if (failed.length === 0) {
                 toast.success('Upload complete');
-                router.refresh();
                 // Short delay to let user see the green checks
                 const t = setTimeout(() => {
                     setOpen(false);
@@ -135,25 +228,43 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                 }, 500);
                 return () => clearTimeout(t);
             }
+
+            // Leave the dialog open so failures stay visible and retryable.
+            toast.error(
+                succeeded > 0
+                    ? `${succeeded} uploaded, ${failed.length} failed`
+                    : `${failed.length} photo${failed.length === 1 ? '' : 's'} failed to upload`
+            );
         }
     }, [isGlobalUploading, files, uploadStatuses, router]);
 
     const handleStartUpload = async () => {
-        setIsGlobalUploading(true);
-        const pendingFiles = files.filter(f => uploadStatuses[f.id]?.status === 'pending');
+        // Errored files are picked up too, so the button doubles as a retry.
+        const queue = files.filter(f => {
+            const status = uploadStatuses[f.id]?.status;
+            return status === 'pending' || status === 'error';
+        });
 
-        if (pendingFiles.length === 0) {
-            setIsGlobalUploading(false);
-            return;
-        }
+        if (queue.length === 0) return;
+
+        setIsGlobalUploading(true);
+        setUploadStatuses(prev => {
+            const next = { ...prev };
+            queue.forEach(f => {
+                next[f.id] = { ...next[f.id], status: 'pending', progress: 0, error: undefined };
+            });
+            return next;
+        });
 
         // Sequential upload to prevent hanging/race conditions
-        for (const file of pendingFiles) {
+        for (const file of queue) {
             await uploadSingleFile(file);
         }
 
         setIsGlobalUploading(false);
     };
+
+    const hasFailures = files.some(f => uploadStatuses[f.id]?.status === 'error');
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -207,7 +318,7 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                                             <>
                                                 <Loader2 className="w-3 h-3 mr-2 animate-spin" /> Uploading...
                                             </>
-                                        ) : 'Start Upload'}
+                                        ) : hasFailures ? 'Retry Failed' : 'Start Upload'}
                                     </Button>
                                 </div>
                             </div>
@@ -224,6 +335,16 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                                                         <CheckCircle2 className="w-6 h-6 text-green-500" />
                                                     </div>
                                                 )}
+                                                {status.status === 'processing' && (
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                                    </div>
+                                                )}
+                                                {status.status === 'error' && (
+                                                    <div className="absolute inset-0 bg-destructive/40 flex items-center justify-center">
+                                                        <AlertCircle className="w-6 h-6 text-white" />
+                                                    </div>
+                                                )}
                                                 {!isGlobalUploading && status.status !== 'completed' && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); removeFile(file.id) }}
@@ -238,9 +359,19 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                                                 <div className="h-1 w-full bg-muted rounded-full mt-2 overflow-hidden">
                                                     <div
                                                         className={cn("h-full transition-all", status.status === 'error' ? 'bg-destructive' : 'bg-primary')}
-                                                        style={{ width: `${status.progress}%` }}
+                                                        style={{ width: `${status.status === 'error' ? 100 : status.progress}%` }}
                                                     />
                                                 </div>
+                                                {status.status === 'error' && (
+                                                    <p className="text-[11px] text-destructive mt-1 leading-tight">
+                                                        {status.error || 'Upload failed'}
+                                                    </p>
+                                                )}
+                                                {status.status === 'processing' && (
+                                                    <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                                                        Processing…
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     )
