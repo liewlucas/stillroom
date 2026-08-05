@@ -1,6 +1,16 @@
 import { auth } from '@clerk/nextjs/server';
 import { getPayloadClient } from '@/lib/data';
 
+/**
+ * Payload's postgres adapter issues integer IDs, so a gallery id arrives as a
+ * number over JSON. Normalize to string for use in R2 key prefixes.
+ */
+export function normalizeId(value: unknown): string | null {
+    if (typeof value === 'string' && value.length > 0) return value;
+    if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+    return null;
+}
+
 type AuthorizeResult =
     | { ok: true; photographerId: string | number; galleryId: string | number }
     | { ok: false; error: string; status: number };

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2, R2_BUCKET, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/r2';
-import { authorizeGalleryUpload } from '@/lib/upload-auth';
+import { authorizeGalleryUpload, normalizeId } from '@/lib/upload-auth';
 import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';
@@ -26,10 +26,11 @@ function getSourceExtension(filename: string, contentType: string) {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { projectId, filename, contentType, fileSize } = body ?? {};
+        const { filename, contentType, fileSize } = body ?? {};
 
-        if (typeof projectId !== 'string' || typeof filename !== 'string') {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const projectId = normalizeId(body?.projectId);
+        if (!projectId || typeof filename !== 'string') {
+            return NextResponse.json({ error: 'Missing gallery or filename' }, { status: 400 });
         }
 
         if (typeof contentType !== 'string' || !ALLOWED_UPLOAD_TYPES.includes(contentType)) {
@@ -57,7 +58,10 @@ export async function POST(req: NextRequest) {
 
         const photoId = uuidv4();
         const sourceExt = getSourceExtension(filename, contentType);
-        const prefix = `photographers/${authorized.photographerId}/projects/${projectId}/${photoId}`;
+        // Build the prefix from the resolved DB ids, never the raw client string:
+        // finalize recomputes this same prefix to validate the key, and the two
+        // must agree byte-for-byte.
+        const prefix = `photographers/${authorized.photographerId}/projects/${authorized.galleryId}/${photoId}`;
         const key = `${prefix}/full.${sourceExt}`;
 
         // ContentType is part of the signature, so the browser PUT must send a
@@ -69,7 +73,9 @@ export async function POST(req: NextRequest) {
                 Key: key,
                 ContentType: contentType,
             }),
-            { expiresIn: 600 },
+            // A 50MB original on a weak connection can take a while; the URL is
+            // scoped to one key this user already owns, so a wider window is cheap.
+            { expiresIn: 1800 },
         );
 
         return NextResponse.json({ uploadUrl, key, photoId });

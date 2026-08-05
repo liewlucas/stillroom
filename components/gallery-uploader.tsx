@@ -29,6 +29,10 @@ interface UploadStatus {
     error?: string;
 }
 
+/** Mirrors MAX_UPLOAD_BYTES in lib/r2.ts. Kept local so this client component
+ *  doesn't pull the S3 client into the browser bundle. */
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
 async function readError(res: Response, fallback: string) {
     try {
         const data = await res.json();
@@ -76,7 +80,8 @@ function putToR2(
     });
 }
 
-export function GalleryUploader({ projectId }: { projectId: string }) {
+// Payload's postgres adapter issues integer IDs, so callers pass a number here.
+export function GalleryUploader({ projectId }: { projectId: string | number }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);
@@ -117,9 +122,14 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
         });
         setUploadStatuses(prev => ({ ...prev, ...newStatuses }));
 
-        if (fileRejections.length > 0) {
-            toast.error(`${fileRejections.length} files rejected.`);
-        }
+        fileRejections.forEach(({ file, errors }) => {
+            const tooBig = errors.some((e) => e.code === 'file-too-large');
+            toast.error(
+                tooBig
+                    ? `${file.name} is over the 50MB limit`
+                    : `${file.name} must be a JPEG, PNG, or WebP image`
+            );
+        });
     }, []);
 
     const removeFile = (id: string) => {
@@ -134,7 +144,15 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
+        // Match ALLOWED_UPLOAD_TYPES on the server: a bare 'image/*' lets HEIC and
+        // AVIF through the picker only to be rejected after a round trip.
+        accept: {
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/png': ['.png'],
+            'image/webp': ['.webp'],
+        },
+        // Reject oversized files here rather than after presign + a long PUT.
+        maxSize: MAX_UPLOAD_BYTES,
         disabled: isGlobalUploading
     });
 
@@ -156,7 +174,7 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    projectId,
+                    projectId: String(projectId),
                     filename: file.name,
                     contentType,
                     fileSize: file.size,
@@ -181,7 +199,7 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    projectId,
+                    projectId: String(projectId),
                     photoId,
                     key,
                     filename: file.name,
@@ -325,7 +343,11 @@ export function GalleryUploader({ projectId }: { projectId: string }) {
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {files.map((file) => {
-                                    const status = uploadStatuses[file.id];
+                                    // onDrop sets files and statuses in separate
+                                    // updates, so tolerate a missing entry rather
+                                    // than crashing the dialog on first paint.
+                                    const status: UploadStatus = uploadStatuses[file.id]
+                                        ?? { id: file.id, status: 'pending', progress: 0 };
                                     return (
                                         <div key={file.id} className="relative group bg-background border rounded-lg overflow-hidden flex flex-col">
                                             <div className="relative aspect-video bg-muted">

@@ -1,0 +1,13 @@
+[
+  {
+    "AllowedOrigins": [
+      "https://stillroom-eight.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:3001"
+    ],
+    "AllowedMethods": ["PUT", "GET"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": ["etag"],
+    "MaxAgeSeconds": 3600
+  }
+]

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPayloadClient } from '@/lib/data';
 import { r2, R2_BUCKET, MAX_UPLOAD_BYTES } from '@/lib/r2';
-import { authorizeGalleryUpload } from '@/lib/upload-auth';
+import { authorizeGalleryUpload, normalizeId } from '@/lib/upload-auth';
 import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
@@ -51,10 +51,11 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { projectId, photoId, key, filename, contentType } = body ?? {};
+        const { photoId, key, filename, contentType } = body ?? {};
 
-        if (typeof projectId !== 'string' || typeof photoId !== 'string' || typeof key !== 'string') {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const projectId = normalizeId(body?.projectId);
+        if (!projectId || typeof photoId !== 'string' || typeof key !== 'string') {
+            return NextResponse.json({ error: 'Missing gallery, photo id, or key' }, { status: 400 });
         }
 
         const authorized = await authorizeGalleryUpload(projectId);
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         // The client supplies the key, so pin it to the prefix this user is
         // allowed to write. Without this, any signed-in photographer could
         // attach someone else's object to their own gallery.
-        const prefix = `photographers/${authorized.photographerId}/projects/${projectId}/${photoId}`;
+        const prefix = `photographers/${authorized.photographerId}/projects/${authorized.galleryId}/${photoId}`;
         const expectedKey = /^full\.(jpg|jpeg|png|webp)$/;
         if (!key.startsWith(`${prefix}/`) || !expectedKey.test(key.slice(prefix.length + 1))) {
             return NextResponse.json({ error: 'Invalid object key' }, { status: 400 });
@@ -112,10 +113,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'File is not a readable image' }, { status: 400 });
         }
 
-        const [webVariant, highResVariant] = await Promise.all([
-            createJpegVariant(originalBuffer, 1600, 75),
-            createJpegVariant(originalBuffer, 3000, 88),
-        ]);
+        // Sequential, not Promise.all: each sharp pipeline decodes the full
+        // original into raw pixels, so running both at once doubles peak memory
+        // and a large original will OOM the function.
+        const webVariant = await createJpegVariant(originalBuffer, 1600, 75);
+        const highResVariant = await createJpegVariant(originalBuffer, 3000, 88);
 
         const uploadResults = await Promise.allSettled([
             r2.send(new PutObjectCommand({
