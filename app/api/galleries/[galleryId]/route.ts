@@ -29,7 +29,7 @@ export async function DELETE(
         });
 
         if (!gallery) {
-            return NextResponse.json({ error: 'Gallery not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Album not found' }, { status: 404 });
         }
 
         // Fetch photographer for the current user to verify ownership
@@ -142,7 +142,7 @@ export async function PATCH(
         });
 
         if (!gallery) {
-            return NextResponse.json({ error: 'Gallery not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Album not found' }, { status: 404 });
         }
 
         // Fetch photographer for the current user to verify ownership

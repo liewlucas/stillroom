@@ -7,7 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
-    { href: '/dashboard/galleries', label: 'Galleries' },
+    { href: '/dashboard/albums', label: 'Albums' },
 ];
 
 export function Navbar() {

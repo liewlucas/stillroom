@@ -11,7 +11,7 @@ export default function Home() {
           Deliver Photos securely.
         </h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--muted-foreground)', maxWidth: '600px', margin: '0 auto 2rem' }}>
-          The professional platform for photographers to share galleries and manage projects.
+          The professional platform for photographers to share albums and manage projects.
         </p>
       </div>
     </main>

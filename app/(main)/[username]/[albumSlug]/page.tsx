@@ -5,8 +5,8 @@ import { Photo } from '@/components/photo';
 
 export const runtime = 'nodejs';
 
-export default async function GalleryPage({ params }: { params: Promise<{ username: string; gallerySlug: string }> }) {
-    const { username, gallerySlug } = await params;
+export default async function AlbumPage({ params }: { params: Promise<{ username: string; albumSlug: string }> }) {
+    const { username, albumSlug } = await params;
 
     const payload = await getPayloadClient();
 
@@ -20,31 +20,31 @@ export default async function GalleryPage({ params }: { params: Promise<{ userna
     }
     const photographer = photographers.docs[0];
 
-    // 2. Find Gallery
-    const galleries = await payload.find({
+    // 2. Find album
+    const albums = await payload.find({
         collection: 'galleries',
         where: {
             and: [
                 { photographer: { equals: photographer.id } },
-                { slug: { equals: gallerySlug } }
+                { slug: { equals: albumSlug } }
             ]
         }
     });
 
-    if (!galleries.docs || galleries.docs.length === 0) {
+    if (!albums.docs || albums.docs.length === 0) {
         notFound();
     }
-    const gallery = galleries.docs[0];
+    const album = albums.docs[0];
 
     // 3. Check Visibility
-    if (!gallery.is_public) {
+    if (!album.is_public) {
         // Handle private (Assuming user needs authentication or token if here)
     }
 
     // 4. Fetch Photos
     const photos = await payload.find({
         collection: 'photos',
-        where: { project: { equals: gallery.id } }, // Keeping 'project' field on Photos collection for now
+        where: { project: { equals: album.id } }, // Keeping 'project' field on Photos collection for now
         limit: 100,
     });
 
@@ -53,8 +53,8 @@ export default async function GalleryPage({ params }: { params: Promise<{ userna
             <Navigation />
             <div className="container py-12">
                 <header className="text-center mb-12">
-                    <h1 className="text-4xl font-bold mb-2">{gallery.title}</h1>
-                    {gallery.description && <p className="text-lg text-muted-foreground mb-2">{gallery.description}</p>}
+                    <h1 className="text-4xl font-bold mb-2">{album.title}</h1>
+                    {album.description && <p className="text-lg text-muted-foreground mb-2">{album.description}</p>}
                     <p className="text-muted-foreground">by {photographer.display_name}</p>
                 </header>
 

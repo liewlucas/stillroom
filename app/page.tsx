@@ -129,12 +129,12 @@ function Nav() {
 
         <div className="flex items-center gap-4">
           <SignedIn>
-            <Link href="/dashboard/galleries">
+            <Link href="/dashboard/albums">
               <button
                 className="px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:opacity-90"
                 style={{ background: c.cta, borderRadius: 6 }}
               >
-                My Galleries
+                My Albums
               </button>
             </Link>
           </SignedIn>
@@ -254,12 +254,12 @@ export default function LandingPage() {
               </SignUpButton>
             </SignedOut>
             <SignedIn>
-              <Link href="/dashboard/galleries">
+              <Link href="/dashboard/albums">
                 <button
                   className="px-7 py-3.5 text-sm font-semibold text-white tracking-wide uppercase transition-all duration-300 hover:opacity-90"
                   style={{ background: c.cta, borderRadius: 4 }}
                 >
-                  Go to Galleries
+                  Go to Albums
                 </button>
               </Link>
             </SignedIn>
@@ -543,7 +543,7 @@ export default function LandingPage() {
               className="text-base md:text-lg leading-relaxed mt-8 max-w-xl"
               style={{ color: c.textMuted }}
             >
-              Create a shared gallery, send the link, and let everyone add
+              Create a shared album, send the link, and let everyone add
               their shots. Every angle, every candid, every golden hour moment
               &mdash; together in one place.
             </p>
@@ -593,7 +593,7 @@ export default function LandingPage() {
               {
                 num: "03",
                 title: "Relive it together",
-                desc: "Everyone\u2019s photos, one gallery. Download favourites or the entire collection.",
+                desc: "Everyone\u2019s photos, one album. Download favourites or the entire collection.",
               },
             ].map((step, i) => (
               <Reveal key={i} delay={i * 0.1}>
@@ -665,12 +665,12 @@ export default function LandingPage() {
             </SignUpButton>
           </SignedOut>
           <SignedIn>
-            <Link href="/dashboard/galleries">
+            <Link href="/dashboard/albums">
               <button
                 className="px-8 py-4 text-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90"
                 style={{ background: c.cta, borderRadius: 4 }}
               >
-                Go to Galleries
+                Go to Albums
               </button>
             </Link>
           </SignedIn>

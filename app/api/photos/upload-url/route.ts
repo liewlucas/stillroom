@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
         const projectId = normalizeId(body?.projectId);
         if (!projectId || typeof filename !== 'string') {
-            return NextResponse.json({ error: 'Missing gallery or filename' }, { status: 400 });
+            return NextResponse.json({ error: 'Missing album or filename' }, { status: 400 });
         }
 
         if (typeof contentType !== 'string' || !ALLOWED_UPLOAD_TYPES.includes(contentType)) {
