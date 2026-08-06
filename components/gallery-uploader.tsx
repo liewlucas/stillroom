@@ -33,6 +33,11 @@ interface UploadStatus {
  *  doesn't pull the S3 client into the browser bundle. */
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
+/** Files uploaded simultaneously. Past ~5 the browser's own per-origin
+ *  connection cap starts queueing transfers anyway, and each one gets a thinner
+ *  slice of the same upstream link — so this is roughly the useful ceiling. */
+const CONCURRENT_UPLOADS = 5;
+
 async function readError(res: Response, fallback: string) {
     try {
         const data = await res.json();
@@ -274,10 +279,20 @@ export function GalleryUploader({ projectId }: { projectId: string | number }) {
             return next;
         });
 
-        // Sequential upload to prevent hanging/race conditions
-        for (const file of queue) {
-            await uploadSingleFile(file);
-        }
+        // Worker pool rather than a sequential loop: each file alternates between
+        // network-bound (the PUT) and server-bound (finalize's sharp pass), so
+        // running one at a time leaves both sides idle half the time. Capped at
+        // CONCURRENT_UPLOADS — unbounded would have 30 files fighting over the
+        // same upstream bandwidth and open 30 finalize invocations at once.
+        let cursor = 0;
+        await Promise.all(
+            Array.from({ length: Math.min(CONCURRENT_UPLOADS, queue.length) }, async () => {
+                // Safe without a lock: JS runs this synchronously up to the await.
+                while (cursor < queue.length) {
+                    await uploadSingleFile(queue[cursor++]);
+                }
+            })
+        );
 
         setIsGlobalUploading(false);
     };
