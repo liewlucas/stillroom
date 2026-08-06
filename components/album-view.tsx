@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Trash2, Download, Link as LinkIcon, Plus, ImageIcon } from 'lucide-react';
+import { CheckCircle2, Trash2, Download, Link as LinkIcon, Share, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -14,7 +14,7 @@ import {
 import { Photo } from '@/components/photo';
 import { PhotoUploader } from '@/components/photo-uploader';
 import { PhotoLightbox } from '@/components/photo-lightbox';
-import { ShareGenerator, type ShareLink } from '@/components/share-generator';
+import { ShareLinkList, ShareLinkCreator, type ShareLink } from '@/components/share-generator';
 import { cn, formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -31,9 +31,6 @@ interface AlbumViewProps {
     username: string;
 }
 
-const isExpired = (expires_at?: string | null) =>
-    expires_at ? new Date(expires_at) < new Date() : false;
-
 export function AlbumView({ album, photos, shareLinks, username }: AlbumViewProps) {
     const router = useRouter();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -41,10 +38,9 @@ export function AlbumView({ album, photos, shareLinks, username }: AlbumViewProp
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-    const [inviteOpen, setInviteOpen] = useState(false);
+    const [linksOpen, setLinksOpen] = useState(false);
+    const [createOpen, setCreateOpen] = useState(false);
     const [links, setLinks] = useState<ShareLink[]>(shareLinks);
-
-    const activeLinks = links.filter((l) => !isExpired(l.expires_at));
 
     const toggleSelection = (id: string) => {
         const newSet = new Set(selectedIds);
@@ -159,44 +155,31 @@ export function AlbumView({ album, photos, shareLinks, username }: AlbumViewProp
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0 flex-wrap">
-                    {/* Share-link cluster: one chip per active link, like an avatar stack */}
-                    {activeLinks.length > 0 && (
-                        <div
-                            className="flex items-center -space-x-2"
-                            title={`${activeLinks.length} active share ${activeLinks.length === 1 ? 'link' : 'links'}`}
-                        >
-                            {activeLinks.slice(0, 3).map((link) => (
-                                <div
-                                    key={link.id}
-                                    className="w-8 h-8 rounded-full bg-card border-2 border-background flex items-center justify-center shadow-sm"
-                                >
-                                    <LinkIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                                </div>
-                            ))}
-                            {activeLinks.length > 3 && (
-                                <div className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[11px] font-medium shadow-sm">
-                                    +{activeLinks.length - 3}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <button
-                        type="button"
-                        onClick={() => setInviteOpen(true)}
-                        aria-label="Create share link"
-                        className="w-8 h-8 rounded-full border border-border bg-background hover:bg-card transition-colors flex items-center justify-center"
-                    >
-                        <Plus className="w-4 h-4 text-muted-foreground" />
-                    </button>
-
+                    {/* Shared links — opens the full list */}
                     <Button
                         variant="outline"
-                        className="rounded-full px-5 shadow-sm"
-                        onClick={() => setInviteOpen(true)}
+                        className="rounded-full pl-4 pr-3 gap-2 shadow-sm"
+                        onClick={() => setLinksOpen(true)}
                     >
-                        Invite
+                        <LinkIcon className="w-4 h-4 text-muted-foreground" />
+                        Shared Links
+                        {links.length > 0 && (
+                            <span className="min-w-5 h-5 px-1.5 rounded-full bg-muted text-[11px] font-medium tabular-nums flex items-center justify-center">
+                                {links.length}
+                            </span>
+                        )}
                     </Button>
+
+                    {/* Share — opens the create-a-new-link form */}
+                    <button
+                        type="button"
+                        onClick={() => setCreateOpen(true)}
+                        aria-label="Create a new share link"
+                        title="Create a new share link"
+                        className="w-9 h-9 rounded-full border border-border bg-background hover:bg-card transition-colors flex items-center justify-center shadow-sm"
+                    >
+                        <Share className="w-4 h-4 text-muted-foreground" />
+                    </button>
 
                     {photos.length > 0 && (
                         <Button
@@ -330,20 +313,46 @@ export function AlbumView({ album, photos, shareLinks, username }: AlbumViewProp
                 )}
             </div>
 
-            {/* Invite dialog — hosts the existing share-link system */}
-            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            {/* Shared links — the full list */}
+            <Dialog open={linksOpen} onOpenChange={setLinksOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Share this album</DialogTitle>
+                        <DialogTitle>Shared links</DialogTitle>
                         <DialogDescription>
-                            Anyone with a link can view and download the photos in this album.
+                            Anyone with one of these links can view and download this album.
                         </DialogDescription>
                     </DialogHeader>
-                    <ShareGenerator
+                    <ShareLinkList
+                        links={links}
+                        username={username}
+                        onDeleted={(id) => setLinks((prev) => prev.filter((l) => l.id !== id))}
+                        onCreateNew={() => {
+                            setLinksOpen(false);
+                            setCreateOpen(true);
+                        }}
+                    />
+                </DialogContent>
+            </Dialog>
+
+            {/* Share — create a new link */}
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Create a share link</DialogTitle>
+                        <DialogDescription>
+                            Generate a link that lets anyone view and download this album.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <ShareLinkCreator
                         galleryId={String(album.id)}
                         username={username}
-                        initialLinks={links}
-                        onLinksChange={setLinks}
+                        onCreated={(link) => {
+                            setLinks((prev) => [link, ...prev]);
+                            // Hand off to the list so the new link can be copied
+                            // straight away — creating one is rarely the end goal.
+                            setCreateOpen(false);
+                            setLinksOpen(true);
+                        }}
                     />
                 </DialogContent>
             </Dialog>
