@@ -1,0 +1,44 @@
+- generic [active] [ref=f4e1]:
+  - banner [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - link "Mandai Wildlife Group home" [ref=f4e4] [cursor=pointer]:
+        - /url: /
+        - img "Mandai Wildlife Group" [ref=f4e5]
+      - navigation "Main" [ref=f4e6]:
+        - link "View forms" [ref=f4e7] [cursor=pointer]:
+          - /url: /
+        - link "Admin" [ref=f4e8] [cursor=pointer]:
+          - /url: /admin
+  - main [ref=f4e10]:
+    - generic [ref=f4e11]: Corporate Bulk Purchase
+    - heading "Bulk purchase requisition forms" [level=1] [ref=f4e12]
+    - paragraph [ref=f4e13]: Select the form that matches your organisation and order size. A minimum ticket purchase applies to each form; Senior Citizen tickets do not count toward the minimum.
+    - generic [ref=f4e14]:
+      - link "Corporate Bulk Purchase — Form 1 Corporate, 30–499 tickets Minimum 30 tickets · up to 499" [ref=f4e15] [cursor=pointer]:
+        - /url: /forms/form-1
+        - heading "Corporate Bulk Purchase — Form 1" [level=2] [ref=f4e16]
+        - paragraph [ref=f4e17]: Corporate, 30–499 tickets
+        - generic [ref=f4e18]: Minimum 30 tickets · up to 499
+      - link "Corporate Bulk Purchase — Form 2 Corporate, 500–1,999 tickets Minimum 500 tickets · up to 1999" [ref=f4e19] [cursor=pointer]:
+        - /url: /forms/form-2
+        - heading "Corporate Bulk Purchase — Form 2" [level=2] [ref=f4e20]
+        - paragraph [ref=f4e21]: Corporate, 500–1,999 tickets
+        - generic [ref=f4e22]: Minimum 500 tickets · up to 1999
+      - link "Corporate Bulk Purchase — Form 3 Corporate, 2,000+ tickets Minimum 2000 tickets" [ref=f4e23] [cursor=pointer]:
+        - /url: /forms/form-3
+        - heading "Corporate Bulk Purchase — Form 3" [level=2] [ref=f4e24]
+        - paragraph [ref=f4e25]: Corporate, 2,000+ tickets
+        - generic [ref=f4e26]: Minimum 2000 tickets
+      - link "Corporate Bulk Purchase — People's Association People's Association, minimum 40 tickets Minimum 40 tickets" [ref=f4e27] [cursor=pointer]:
+        - /url: /forms/pa
+        - heading "Corporate Bulk Purchase — People's Association" [level=2] [ref=f4e28]
+        - paragraph [ref=f4e29]: People's Association, minimum 40 tickets
+        - generic [ref=f4e30]: Minimum 40 tickets
+      - link "Corporate Bulk Purchase — E-Invoice (GeBiz) Government agencies via GeBiz/vendors@gov, 30–499 tickets Minimum 30 tickets · up to 499" [ref=f4e31] [cursor=pointer]:
+        - /url: /forms/e-invoice
+        - heading "Corporate Bulk Purchase — E-Invoice (GeBiz)" [level=2] [ref=f4e32]
+        - paragraph [ref=f4e33]: Government agencies via GeBiz/vendors@gov, 30–499 tickets
+        - generic [ref=f4e34]: Minimum 30 tickets · up to 499
+  - contentinfo [ref=f4e35]: Mandai Wildlife Group · 80 Mandai Lake Road · Singapore 729826
+  - button "Open Next.js Dev Tools" [ref=f4e41] [cursor=pointer]
+  - alert [ref=f4e45]

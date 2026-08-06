@@ -1,0 +1,147 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - link "stillroom" [ref=f4e5] [cursor=pointer]:
+        - /url: /
+    - main [ref=f4e6]:
+      - generic [ref=f4e7]:
+        - generic [ref=f4e12]:
+          - heading [level=1] [ref=f4e13]:
+            - text: Some
+            - emphasis [ref=f4e14]: moments
+            - text: deserve more thandisappearing intoa camera roll.
+          - paragraph [ref=f4e15]: A shared space for the people andmemories that matter most.
+        - generic [ref=f4e16]: Scroll
+      - generic [ref=f4e25]:
+        - generic [ref=f4e27]:
+          - heading "The trips, the reunions, the celebrations." [level=2] [ref=f4e28]: The trips,the reunions,the celebrations.
+          - paragraph [ref=f4e29]: The little moments that become your favorite memories.
+          - paragraph [ref=f4e32]: Unscripted.Unposed.Exactly how it felt.
+        - generic [ref=f4e47]:
+          - figure [ref=f4e48]:
+            - img "Friends gathered around a candlelit dinner table under string lights" [ref=f4e50]
+          - figure [ref=f4e51]:
+            - img "A young family sitting together in a poppy field at golden hour" [ref=f4e53]
+          - figure [ref=f4e54]:
+            - img "A hiker walking into a wildflower valley" [ref=f4e56]
+          - figure [ref=f4e57]:
+            - img "Graduates throwing their caps into a sunset sky" [ref=f4e59]
+          - paragraph [ref=f4e61]: The ones you never want to forget.
+      - generic [ref=f4e63]:
+        - generic [ref=f4e65]:
+          - paragraph [ref=f4e66]: But the reality is…
+          - heading "They’re scattered across ten different phones. Someone always forgets to send them." [level=2] [ref=f4e67]:
+            - generic [ref=f4e68]: They’re scattered across ten different phones.
+            - generic [ref=f4e69]: Someone always forgets to send them.
+        - generic [ref=f4e73]:
+          - generic [ref=f4e76]:
+            - paragraph [ref=f4e77]: AirDrop
+            - paragraph [ref=f4e78]: “Sarah’s iPhone” would like to share 23 photos
+            - generic [ref=f4e79]:
+              - generic [ref=f4e80]: Decline
+              - generic [ref=f4e81]: Accept
+          - generic [ref=f4e82]: Too bad it’s compressed 😅
+          - generic [ref=f4e87]:
+            - generic [ref=f4e88]: 9:41
+            - generic [ref=f4e94]:
+              - generic [ref=f4e95]: ‹ Albums
+              - generic [ref=f4e96]: Select
+            - generic [ref=f4e97]:
+              - paragraph [ref=f4e98]: Camera Roll
+              - paragraph [ref=f4e99]: 1,482 photos
+          - generic [ref=f4e115]:
+            - generic [ref=f4e116]:
+              - generic [ref=f4e117]: GC
+              - generic [ref=f4e118]: Graduation Crew
+            - generic [ref=f4e123]:
+              - generic [ref=f4e124]: Does anyone have the photos from yesterday?
+              - generic [ref=f4e125]: I think Alex has them
+              - generic [ref=f4e126]: Wait I thought you uploaded them?
+              - generic [ref=f4e127]:
+                - generic [ref=f4e128]: A
+                - generic [ref=f4e129]:
+                  - paragraph [ref=f4e130]: Alex
+                  - generic [ref=f4e131]: Oh shoot yeah sorry!
+              - generic [ref=f4e132]:
+                - generic [ref=f4e133]: 😅
+                - generic [ref=f4e134]: 🙃
+                - generic [ref=f4e135]: 💀
+          - generic [ref=f4e144]:
+            - paragraph [ref=f4e145]: IMG_3921.jpeg
+            - paragraph [ref=f4e146]: 2.1 MB
+      - generic [ref=f4e148]:
+        - generic [ref=f4e150]:
+          - paragraph [ref=f4e151]: Meet stillroom
+          - heading "The feeling of a physical album. The convenience of a digital link." [level=2] [ref=f4e152]:
+            - generic [ref=f4e153]: The feeling of a physical album.
+            - generic [ref=f4e154]: The convenience of a digital link.
+          - paragraph [ref=f4e155]: One beautiful space for everyone to add, view, and relive memories together.
+        - generic [ref=f4e158]:
+          - generic [ref=f4e159]:
+            - paragraph [ref=f4e160]: stillroom
+            - generic [ref=f4e161]:
+              - generic [ref=f4e162]: Home
+              - generic [ref=f4e166]: Albums
+            - paragraph [ref=f4e172]: Your albums
+            - generic [ref=f4e173]:
+              - generic [ref=f4e174]: Bali 2024
+              - generic [ref=f4e177]: Graduation
+              - generic [ref=f4e180]: Family Weekend
+              - generic [ref=f4e183]: Japan Trip
+            - generic [ref=f4e186]: New album
+            - generic [ref=f4e190]: Lena Ortiz
+          - generic [ref=f4e194]:
+            - generic [ref=f4e195]:
+              - paragraph [ref=f4e196]: Bali 2024
+              - paragraph [ref=f4e197]: 128 photos · 6 people · Created April 2024
+            - generic [ref=f4e198]:
+              - generic [ref=f4e199]: "+3"
+              - generic [ref=f4e204]: Invite
+      - generic [ref=f4e216]:
+        - generic [ref=f4e218]:
+          - paragraph [ref=f4e219]: Made for the peoplebehind the camera
+          - heading "A better way to deliver the memories." [level=2] [ref=f4e220]: A better way todeliver the memories.
+          - paragraph [ref=f4e221]: For photographers, too. Create a Stillroom, upload the final album, and send your clients one beautiful link they can keep coming back to.
+          - paragraph [ref=f4e222]: Every link carries your name and theirs — it feels like handing over an album, not a file transfer.
+        - generic [ref=f4e225]:
+          - generic [ref=f4e226]:
+            - paragraph [ref=f4e227]: Sarah & James
+            - paragraph [ref=f4e228]: June 14, 2024
+            - generic [ref=f4e229]: Share link →
+            - paragraph [ref=f4e230]: stillroom.com/lucas/share/sarah-james
+            - paragraph [ref=f4e231]: 482 photos · 2.3 GB
+            - list [ref=f4e232]:
+              - listitem [ref=f4e233]:
+                - generic [ref=f4e237]:
+                  - paragraph [ref=f4e238]: Upload complete
+                  - paragraph [ref=f4e239]: 482 photos
+              - listitem [ref=f4e240]:
+                - generic [ref=f4e244]:
+                  - paragraph [ref=f4e245]: Album delivered
+                  - paragraph [ref=f4e246]: Jun 15, 10:28 AM
+              - listitem [ref=f4e247]:
+                - generic [ref=f4e251]:
+                  - paragraph [ref=f4e252]: Sarah viewed album
+                  - paragraph [ref=f4e253]: Jun 16, 3:15 PM
+          - generic [ref=f4e256]:
+            - img "Wedding guests gathered around a candlelit dinner table under string lights" [ref=f4e258]
+            - img "A couple sitting close together in a poppy field at golden hour" [ref=f4e260]
+            - img "A quiet coastal town at dusk" [ref=f4e262]
+            - img "Two people walking into a wildflower valley" [ref=f4e264]
+            - img "Family portrait in warm evening light" [ref=f4e266]
+            - img "Guests hiking a ridge line under a wide sky" [ref=f4e268]
+            - img "Celebration caps thrown into a sunset sky" [ref=f4e270]
+            - img "A toast between friends at the reception table" [ref=f4e272]
+            - img "The couple resting in the field as the light fades" [ref=f4e274]
+      - generic [ref=f4e279]:
+        - heading [level=2] [ref=f4e280]:
+          - text: Every memory.
+          - emphasis [ref=f4e281]: Together.
+        - paragraph [ref=f4e282]: Get early access
+    - contentinfo [ref=f4e283]:
+      - generic [ref=f4e284]:
+        - link "stillroom" [ref=f4e285] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f4e286]: © 2026 stillroom. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f4e292] [cursor=pointer]

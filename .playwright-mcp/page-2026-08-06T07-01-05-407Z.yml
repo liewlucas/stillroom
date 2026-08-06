@@ -1,0 +1,137 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "stillroom" [ref=e5] [cursor=pointer]:
+        - /url: /
+    - main [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e12]:
+          - heading [level=1] [ref=e13]:
+            - text: Some
+            - emphasis [ref=e14]: moments
+            - text: deserve more thandisappearing intoa camera roll.
+          - paragraph [ref=e15]: A shared space for the people andmemories that matter most.
+        - generic [ref=e16]: Scroll
+      - generic [ref=e25]:
+        - generic [ref=e27]:
+          - heading "The trips, the reunions, the celebrations." [level=2] [ref=e28]: The trips,the reunions,the celebrations.
+          - paragraph [ref=e29]: The little moments that become your favorite memories.
+          - paragraph [ref=e33]: Unscripted.Unposed.Exactly how it felt.
+        - generic [ref=e46]:
+          - figure [ref=e47]:
+            - img "Friends gathered around a candlelit dinner table under string lights" [ref=e49]
+          - figure [ref=e50]:
+            - img "A young family sitting together in a poppy field at golden hour" [ref=e52]
+          - figure [ref=e53]:
+            - img "A hiker walking into a wildflower valley" [ref=e55]
+          - figure [ref=e56]:
+            - img "Graduates throwing their caps into a sunset sky" [ref=e58]
+          - paragraph [ref=e60]: The ones you never want to forget.
+      - generic [ref=e62]:
+        - generic [ref=e64]:
+          - paragraph [ref=e65]: But the reality is…
+          - heading "They’re scattered across ten different phones. Someone always forgets to send them." [level=2] [ref=e66]:
+            - generic [ref=e67]: They’re scattered across ten different phones.
+            - generic [ref=e68]: Someone always forgets to send them.
+        - generic [ref=e72]:
+          - generic [ref=e75]:
+            - paragraph [ref=e76]: AirDrop
+            - paragraph [ref=e77]: “Sarah’s iPhone” would like to share 23 photos
+            - generic [ref=e78]:
+              - generic [ref=e79]: Decline
+              - generic [ref=e80]: Accept
+          - generic [ref=e81]: Too bad it’s compressed 😅
+          - generic [ref=e86]:
+            - generic [ref=e87]: 9:41
+            - generic [ref=e93]:
+              - generic [ref=e94]: ‹ Albums
+              - generic [ref=e95]: Select
+            - generic [ref=e96]:
+              - paragraph [ref=e97]: Camera Roll
+              - paragraph [ref=e98]: 1,482 photos
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: GC
+              - generic [ref=e117]: Graduation Crew
+            - generic [ref=e122]:
+              - generic [ref=e123]: Does anyone have the photos from yesterday?
+              - generic [ref=e124]: I think Alex has them
+              - generic [ref=e125]: Wait I thought you uploaded them?
+              - generic [ref=e126]:
+                - generic [ref=e127]: A
+                - generic [ref=e128]:
+                  - paragraph [ref=e129]: Alex
+                  - generic [ref=e130]: Oh shoot yeah sorry!
+              - generic [ref=e131]:
+                - generic [ref=e132]: 😅
+                - generic [ref=e133]: 🙃
+                - generic [ref=e134]: 💀
+          - generic [ref=e143]:
+            - paragraph [ref=e144]: IMG_3921.jpeg
+            - paragraph [ref=e145]: 2.1 MB
+      - generic [ref=e147]:
+        - generic [ref=e149]:
+          - paragraph [ref=e150]: Meet stillroom
+          - heading "The feeling of a physical album. The convenience of a digital link." [level=2] [ref=e151]:
+            - generic [ref=e152]: The feeling of a physical album.
+            - generic [ref=e153]: The convenience of a digital link.
+          - paragraph [ref=e154]: One beautiful space for everyone to add, view, and relive memories together.
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - paragraph [ref=e159]: stillroom
+            - generic [ref=e160]:
+              - generic [ref=e161]: Home
+              - generic [ref=e165]: Albums
+            - paragraph [ref=e171]: Your albums
+            - generic [ref=e172]:
+              - generic [ref=e173]: Bali 2024
+              - generic [ref=e176]: Graduation
+              - generic [ref=e179]: Family Weekend
+              - generic [ref=e182]: Japan Trip
+            - generic [ref=e185]: New album
+            - generic [ref=e189]: Lena Ortiz
+          - generic [ref=e193]:
+            - generic [ref=e194]:
+              - paragraph [ref=e195]: Bali 2024
+              - paragraph [ref=e196]: 128 photos · 6 people · Created April 2024
+            - generic [ref=e197]:
+              - generic [ref=e198]: "+3"
+              - generic [ref=e203]: Invite
+      - generic [ref=e215]:
+        - generic [ref=e217]:
+          - paragraph [ref=e218]: Live demo
+          - heading "See how it comes together." [level=2] [ref=e219]
+          - paragraph [ref=e220]: Real-time uploads. Shared in real-time. Made for together.
+        - generic [ref=e222]:
+          - generic [ref=e223]:
+            - generic [ref=e224]: Drop a photo here or click to upload
+            - generic [ref=e228]:
+              - generic [ref=e230]:
+                - generic [ref=e231]: 😊
+                - generic [ref=e232]: 😍
+              - generic [ref=e235]: 😍
+            - generic [ref=e239]:
+              - text: Emma is typing
+              - generic [ref=e240]:
+                - generic [ref=e241]: .
+                - generic [ref=e242]: .
+                - generic [ref=e243]: .
+          - paragraph [ref=e257]:
+            - strong [ref=e258]: Sarah
+            - text: just added 3 photos · 2s ago
+          - paragraph [ref=e264]:
+            - strong [ref=e265]: Mike
+            - text: joined the album · just now
+      - generic [ref=e270]:
+        - heading [level=2] [ref=e271]:
+          - text: Every memory.
+          - emphasis [ref=e272]: Together.
+        - paragraph [ref=e273]: Get early access
+    - contentinfo [ref=e274]:
+      - generic [ref=e275]:
+        - link "stillroom" [ref=e276] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=e277]: © 2026 stillroom. All rights reserved.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e283] [cursor=pointer]
+  - alert [ref=e287]
