@@ -5,7 +5,7 @@ import { X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 
-interface ProjectLightboxProps {
+interface PhotoLightboxProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     photos: any[];
     initialIndex: number;
@@ -14,7 +14,7 @@ interface ProjectLightboxProps {
     variant?: 'web' | 'high' | 'full';
 }
 
-export function GalleryLightbox({ photos, initialIndex, onClose, token, variant = 'web' }: ProjectLightboxProps) {
+export function PhotoLightbox({ photos, initialIndex, onClose, token, variant = 'web' }: PhotoLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [currentUrl, setCurrentUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);

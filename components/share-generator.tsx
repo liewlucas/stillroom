@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link as LinkIcon, Copy, Check, Trash2, Plus, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface ShareLink {
+export interface ShareLink {
     id: string;
     token: string;
     slug?: string | null;
@@ -14,13 +14,19 @@ interface ShareLink {
 }
 
 interface ShareGeneratorProps {
-    galleryId: string;
+    galleryId: string; // JSON body key expected by /api/share — do not rename
     username: string;
     initialLinks?: ShareLink[];
+    /** Lets a parent (e.g. the album header's share cluster) mirror the list. */
+    onLinksChange?: (links: ShareLink[]) => void;
 }
 
-export function ShareGenerator({ galleryId, username, initialLinks = [] }: ShareGeneratorProps) {
+export function ShareGenerator({ galleryId, username, initialLinks = [], onLinksChange }: ShareGeneratorProps) {
     const [links, setLinks] = useState<ShareLink[]>(initialLinks);
+
+    useEffect(() => {
+        onLinksChange?.(links);
+    }, [links, onLinksChange]);
     const [loading, setLoading] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [expiresAt, setExpiresAt] = useState('');
@@ -89,11 +95,11 @@ export function ShareGenerator({ galleryId, username, initialLinks = [] }: Share
         expires_at ? new Date(expires_at) < new Date() : false;
 
     return (
-        <div className="p-4 border rounded-lg bg-card shadow-sm space-y-3">
+        <div className="space-y-3">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4" /> Share Links
+                    <LinkIcon className="w-4 h-4" /> Share links
                 </h3>
                 {!showForm && (
                     <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
         const projectId = normalizeId(body?.projectId);
         if (!projectId || typeof photoId !== 'string' || typeof key !== 'string') {
-            return NextResponse.json({ error: 'Missing gallery, photo id, or key' }, { status: 400 });
+            return NextResponse.json({ error: 'Missing album, photo id, or key' }, { status: 400 });
         }
 
         const authorized = await authorizeGalleryOwner(projectId);

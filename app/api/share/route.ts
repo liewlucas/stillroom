@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         const { galleryId, expiresAt, downloadLimit, customSlug } = body;
 
         if (!galleryId) {
-            return NextResponse.json({ error: 'Gallery ID required' }, { status: 400 });
+            return NextResponse.json({ error: 'Album ID required' }, { status: 400 });
         }
 
         const payload = await getPayloadClient();

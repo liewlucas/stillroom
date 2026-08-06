@@ -39,7 +39,7 @@ export async function authorizeGalleryOwner(projectId: string): Promise<Authoriz
     }
 
     if (!gallery) {
-        return { ok: false, error: 'Gallery not found', status: 404 };
+        return { ok: false, error: 'Album not found', status: 404 };
     }
 
     const photographers = await payload.find({

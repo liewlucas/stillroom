@@ -86,7 +86,7 @@ function putToR2(
 }
 
 // Payload's postgres adapter issues integer IDs, so callers pass a number here.
-export function GalleryUploader({ projectId }: { projectId: string | number }) {
+export function PhotoUploader({ projectId }: { projectId: string | number }) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [files, setFiles] = useState<UploadFile[]>([]);
@@ -302,16 +302,16 @@ export function GalleryUploader({ projectId }: { projectId: string | number }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="rounded-full px-5 shadow-sm">
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload Photos
+                    Upload photos
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Upload Photos</DialogTitle>
+                    <DialogTitle>Upload photos</DialogTitle>
                     <DialogDescription>
-                        Drag and drop photos here to add them to your project gallery.
+                        Drag and drop photos here to add them to your album.
                     </DialogDescription>
                 </DialogHeader>
 

@@ -36,7 +36,7 @@ export default async function SharedGalleryPage({
             <div className="min-h-screen flex items-center justify-center px-4">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Link Expired</h1>
-                    <p className="text-muted-foreground">This gallery link is no longer available.</p>
+                    <p className="text-muted-foreground">This album link is no longer available.</p>
                 </div>
             </div>
         );

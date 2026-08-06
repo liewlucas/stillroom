@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Camera, Download, CheckSquare, Square, X } from 'lucide-react';
 import { Photo } from '@/components/photo';
-import { GalleryLightbox } from '@/components/gallery-lightbox';
+import { PhotoLightbox } from '@/components/photo-lightbox';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -126,7 +126,7 @@ export function PublicGalleryView({ gallery, photographer, photos, token, galler
             <div className="flex-1 px-1 pb-32">
                 {photos.length === 0 ? (
                     <div className="text-center py-20 text-muted-foreground">
-                        <p>No photos in this gallery yet.</p>
+                        <p>No photos in this album yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-0.5">
@@ -200,7 +200,7 @@ export function PublicGalleryView({ gallery, photographer, photos, token, galler
 
             {/* Lightbox */}
             {lightboxIndex !== null && (
-                <GalleryLightbox
+                <PhotoLightbox
                     photos={photos}
                     initialIndex={lightboxIndex}
                     token={token}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 interface PhotoProps {
     photoId: string;
@@ -11,6 +12,7 @@ interface PhotoProps {
 
 export function Photo({ photoId, token, onClick, className }: PhotoProps) {
     const [src, setSrc] = useState<string | null>(null);
+    const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -33,7 +35,9 @@ export function Photo({ photoId, token, onClick, className }: PhotoProps) {
     }, [photoId, token]);
 
     if (!src) {
-        return <div className="w-full h-full min-h-[200px] bg-muted flex items-center justify-center animate-pulse"></div>;
+        // Fill the parent tile so aspect-ratio containers keep their shape
+        // while the presigned URL is fetched.
+        return <div className="w-full h-full bg-muted animate-pulse" />;
     }
 
     return (
@@ -41,8 +45,13 @@ export function Photo({ photoId, token, onClick, className }: PhotoProps) {
         <img
             src={src}
             loading="lazy"
-            alt="Gallery photo"
-            className={className || "w-full h-full object-cover block cursor-pointer"}
+            alt="Album photo"
+            onLoad={() => setLoaded(true)}
+            className={cn(
+                className || 'w-full h-full object-cover block cursor-pointer',
+                'transition-opacity duration-500',
+                loaded ? 'opacity-100' : 'opacity-0'
+            )}
             onClick={onClick}
         />
     );

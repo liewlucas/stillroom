@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-export default function NewGalleryPage() {
+export default function NewAlbumPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [title, setTitle] = useState('');
@@ -26,60 +26,61 @@ export default function NewGalleryPage() {
                 body: JSON.stringify({ title, description }),
             });
 
-            if (!res.ok) throw new Error('Failed to create gallery');
+            if (!res.ok) throw new Error('Failed to create album');
 
             const data = await res.json();
-            toast.success('Gallery created successfully');
+            toast.success('Album created');
 
-            // Redirect to Gallery Dashboard
-            router.push(`/dashboard/galleries/${data.id}`);
+            // Redirect into the new album; refresh so the sidebar picks it up.
+            router.push(`/dashboard/albums/${data.id}`);
+            router.refresh();
         } catch (error) {
             console.error(error);
-            toast.error('Failed to create gallery');
+            toast.error('Failed to create album');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="container max-w-lg mx-auto py-20">
-            <Card>
+        <div className="w-full max-w-lg mx-auto px-6 py-16 md:py-24">
+            <Card className="rounded-2xl shadow-sm border-border/60">
                 <CardHeader>
-                    <CardTitle>New Gallery</CardTitle>
-                    <CardDescription>Create a dedicated space for your photo collection.</CardDescription>
+                    <CardTitle className="text-2xl tracking-tight">New album</CardTitle>
+                    <CardDescription>Create a dedicated space for your photos.</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Gallery Name</Label>
+                            <Label htmlFor="title">Album name</Label>
                             <Input
                                 id="title"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="e.g. Architecture Shout"
+                                placeholder="e.g. Sarah & Tom — Wedding"
                                 required
                                 disabled={loading}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description (Optional)</Label>
+                            <Label htmlFor="description">Description (optional)</Label>
                             <Input
                                 id="description"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder="A brief description of this gallery"
+                                placeholder="A brief description of this album"
                                 disabled={loading}
                             />
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Link href="/dashboard/galleries">
-                            <Button variant="ghost" type="button" disabled={loading}>
+                        <Link href="/dashboard/albums">
+                            <Button variant="ghost" type="button" disabled={loading} className="rounded-full px-5">
                                 Cancel
                             </Button>
                         </Link>
-                        <Button type="submit" disabled={loading || !title.trim()}>
-                            {loading ? 'Creating...' : 'Create Gallery'}
+                        <Button type="submit" disabled={loading || !title.trim()} className="rounded-full px-5">
+                            {loading ? 'Creating...' : 'Create album'}
                         </Button>
                     </CardFooter>
                 </form>
