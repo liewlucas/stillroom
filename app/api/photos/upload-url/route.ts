@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { r2, R2_BUCKET, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/r2';
-import { authorizeGalleryUpload, normalizeId } from '@/lib/upload-auth';
+import { authorizeGalleryOwner, normalizeId } from '@/lib/upload-auth';
 import { v4 as uuidv4 } from 'uuid';
 
 export const runtime = 'nodejs';
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const authorized = await authorizeGalleryUpload(projectId);
+        const authorized = await authorizeGalleryOwner(projectId);
         if (!authorized.ok) {
             return NextResponse.json({ error: authorized.error }, { status: authorized.status });
         }

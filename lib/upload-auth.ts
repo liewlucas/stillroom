@@ -17,10 +17,10 @@ type AuthorizeResult =
 
 /**
  * Confirms the signed-in Clerk user owns the photographer record that owns the
- * gallery. Both the presign and finalize routes call this — finalize cannot
- * trust that presign ran, since the client controls the request body.
+ * gallery. Every route that acts on a gallery calls this — a route can never
+ * trust that an earlier one ran, since the client controls the request body.
  */
-export async function authorizeGalleryUpload(projectId: string): Promise<AuthorizeResult> {
+export async function authorizeGalleryOwner(projectId: string): Promise<AuthorizeResult> {
     const { userId } = await auth();
     if (!userId) {
         return { ok: false, error: 'Unauthorized', status: 401 };

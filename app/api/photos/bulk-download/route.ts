@@ -4,7 +4,7 @@ import archiver from 'archiver';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { r2, R2_BUCKET } from '@/lib/r2';
-import { auth } from '@clerk/nextjs/server';
+import { authorizeGalleryOwner } from '@/lib/upload-auth';
 import { getPhotoR2Key } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
@@ -34,22 +34,40 @@ export async function POST(req: NextRequest) {
 
         const payload = await getPayloadClient();
 
-        // Authorization: valid share token OR authenticated owner
+        // Authorization: a share token issued for THIS gallery, or its owner.
+        // Resolve the gallery id from whichever proof was presented rather than
+        // from the request body — the body is attacker-controlled.
+        let galleryId: string | number;
+
         if (token) {
             const shares = await payload.find({
                 collection: 'share_links',
                 where: { token: { equals: token } },
             });
-            if (!shares.docs.length) {
+            const share = shares.docs[0];
+            if (!share) {
                 return NextResponse.json({ error: 'Invalid share link' }, { status: 403 });
             }
-            const share = shares.docs[0];
+
+            // Without this the token only proves "some share link exists", and any
+            // link would download any gallery by swapping projectId in the body.
+            const shareGalleryId = typeof share.gallery === 'object' ? share.gallery.id : share.gallery;
+            if (String(shareGalleryId) !== String(projectId)) {
+                return NextResponse.json({ error: 'Invalid share link' }, { status: 403 });
+            }
+
             if (share.expires_at && new Date(share.expires_at) < new Date()) {
                 return NextResponse.json({ error: 'Share link has expired' }, { status: 403 });
             }
+
+            galleryId = shareGalleryId;
         } else {
-            const { userId } = await auth();
-            if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            // Being signed in is not enough — confirm this user owns the gallery.
+            const authorized = await authorizeGalleryOwner(String(projectId));
+            if (!authorized.ok) {
+                return NextResponse.json({ error: authorized.error }, { status: authorized.status });
+            }
+            galleryId = authorized.galleryId;
         }
 
         const result = await payload.find({
@@ -57,7 +75,7 @@ export async function POST(req: NextRequest) {
             where: {
                 and: [
                     { id: { in: photoIds } },
-                    { project: { equals: projectId } },
+                    { project: { equals: galleryId } },
                 ],
             },
             limit: 1000,
@@ -116,7 +134,7 @@ export async function POST(req: NextRequest) {
         return new NextResponse(stream, {
             headers: {
                 'Content-Type': 'application/zip',
-                'Content-Disposition': `attachment; filename="photos-${projectId}.zip"`,
+                'Content-Disposition': `attachment; filename="photos-${galleryId}.zip"`,
             },
         });
     } catch (error) {

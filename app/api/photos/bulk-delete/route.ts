@@ -7,6 +7,13 @@ import { getAllPhotoR2Keys } from '@/lib/photo-variants';
 
 export const runtime = 'nodejs';
 
+/**
+ * R2's DeleteObjects accepts at most 1000 keys per call and every photo has
+ * three variants, so anything past this would fail the R2 call outright and
+ * delete nothing. Reject it up front with a message the user can act on.
+ */
+const MAX_BULK_DELETE = 333;
+
 export async function POST(req: NextRequest) {
     try {
         const { userId } = await auth();
@@ -19,6 +26,16 @@ export async function POST(req: NextRequest) {
 
         if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0 || !projectId) {
             return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+        }
+
+        if (photoIds.length > MAX_BULK_DELETE) {
+            return NextResponse.json(
+                {
+                    error: `You can only delete ${MAX_BULK_DELETE} photos at a time. `
+                        + `You selected ${photoIds.length} — please deselect some and try again.`,
+                },
+                { status: 400 },
+            );
         }
 
         const payload = await getPayloadClient();

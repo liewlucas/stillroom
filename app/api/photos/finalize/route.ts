@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPayloadClient } from '@/lib/data';
 import { r2, R2_BUCKET, MAX_UPLOAD_BYTES } from '@/lib/r2';
-import { authorizeGalleryUpload, normalizeId } from '@/lib/upload-auth';
+import { authorizeGalleryOwner, normalizeId } from '@/lib/upload-auth';
 import { DeleteObjectsCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing gallery, photo id, or key' }, { status: 400 });
         }
 
-        const authorized = await authorizeGalleryUpload(projectId);
+        const authorized = await authorizeGalleryOwner(projectId);
         if (!authorized.ok) {
             return NextResponse.json({ error: authorized.error }, { status: authorized.status });
         }

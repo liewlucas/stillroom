@@ -65,7 +65,16 @@ export function GalleryView({ gallery, photos, sidebarSlot }: GalleryViewProps) 
                 })
             });
 
-            if (!res.ok) throw new Error('Failed to delete');
+            if (!res.ok) {
+                // Surface the server's message — it explains actionable failures
+                // like exceeding the per-request delete limit.
+                let message = 'Failed to delete photos';
+                try {
+                    const data = await res.json();
+                    if (typeof data?.error === 'string') message = data.error;
+                } catch { /* non-JSON response; keep the generic message */ }
+                throw new Error(message);
+            }
 
             toast.success('Photos deleted successfully');
             setSelectedIds(new Set());
@@ -73,7 +82,7 @@ export function GalleryView({ gallery, photos, sidebarSlot }: GalleryViewProps) 
             router.refresh();
         } catch (error) {
             console.error(error);
-            toast.error('Failed to delete photos');
+            toast.error(error instanceof Error ? error.message : 'Failed to delete photos');
         } finally {
             setIsDeleting(false);
         }
