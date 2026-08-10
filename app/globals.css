@@ -95,3 +95,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* The lightbox swipes between photos with a snap-scrolling track; its scrollbar
+   would sit across the image on desktop. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

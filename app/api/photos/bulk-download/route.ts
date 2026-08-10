@@ -5,24 +5,12 @@ import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { r2, R2_BUCKET } from '@/lib/r2';
 import { authorizeGalleryOwner } from '@/lib/upload-auth';
-import { getPhotoR2Key } from '@/lib/photo-variants';
+import { getPhotoDownloadFilename, resolvePhotoKey } from '@/lib/photo-urls';
 
 export const runtime = 'nodejs';
 // Zipping a gallery of high-res originals runs well past the default ceiling.
 // 60 is the Hobby plan cap; raise toward 300 only if this project is on Pro.
 export const maxDuration = 60;
-
-function getDownloadFilename(photo: { id?: unknown; original_filename?: unknown }, key: string) {
-    const fallback = `photo-${String(photo.id || 'download')}`;
-    const originalFilename = typeof photo.original_filename === 'string' && photo.original_filename.trim()
-        ? photo.original_filename
-        : fallback;
-    const basename = originalFilename.replace(/\.[^/.]+$/, '') || fallback;
-    // Take the extension from the key actually being streamed — the high-res
-    // variant is always JPEG, but a legacy fallback to the original may not be.
-    const ext = key.split('.').pop()?.toLowerCase() || 'jpg';
-    return `${basename}.${ext}`;
-}
 
 export async function POST(req: NextRequest) {
     try {
@@ -99,19 +87,21 @@ export async function POST(req: NextRequest) {
             try {
                 for (const photo of result.docs) {
                     // Rows created before variant generation have no high-res key;
-                    // fall back to the original so legacy galleries still download.
-                    const key = getPhotoR2Key(photo, 'high') || getPhotoR2Key(photo, 'full');
-                    if (!key) {
+                    // resolvePhotoKey falls back to the original so legacy
+                    // galleries still download.
+                    const resolved = resolvePhotoKey(photo, 'high');
+                    if (!resolved) {
                         console.error(`[bulk-download] Skipping photo ${photo.id}: no R2 key`);
                         continue;
                     }
+                    const { key } = resolved;
 
                     const command = new GetObjectCommand({ Bucket: R2_BUCKET, Key: key });
                     try {
                         const response = await r2.send(command);
                         if (response.Body) {
                             const bodyStream = response.Body as unknown as Readable;
-                            archive.append(bodyStream, { name: getDownloadFilename(photo, key) });
+                            archive.append(bodyStream, { name: getPhotoDownloadFilename(photo, key) });
                         }
                     } catch (e) {
                         console.error(`Failed to fetch photo ${photo.id}`, e);

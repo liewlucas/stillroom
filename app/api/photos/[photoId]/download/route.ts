@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { r2, R2_BUCKET } from '@/lib/r2';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getPayloadClient } from '@/lib/data';
 import { auth } from '@clerk/nextjs/server';
-import { getPhotoR2Key, PhotoVariant } from '@/lib/photo-variants';
+import { PhotoVariant } from '@/lib/photo-variants';
+import { signPhotoUrl } from '@/lib/photo-urls';
 
 export const runtime = 'nodejs';
 
@@ -17,6 +15,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
     const variant: PhotoVariant = requestedVariant === 'web' || requestedVariant === 'full'
         ? requestedVariant
         : 'high';
+    // Callers that intend to save the file ask for a download-flavoured URL; the
+    // grid, lightbox and hero leave this off and get a plain viewing URL.
+    const disposition = searchParams.get('disposition') === 'attachment' ? 'attachment' as const : undefined;
 
     if (!photoId) {
         return NextResponse.json({ error: 'Missing Photo ID' }, { status: 400 });
@@ -95,19 +96,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ phot
         }
 
         // 4. Generate Signed URL
-        const key = getPhotoR2Key(photo, variant);
-        if (!key) {
+        const signed = await signPhotoUrl(photo, { variant, disposition });
+        if (!signed) {
             return NextResponse.json({ error: 'Photo file not found' }, { status: 404 });
         }
 
-        const command = new GetObjectCommand({
-            Bucket: R2_BUCKET,
-            Key: key,
+        // filename and contentType let the client build a real File for the native
+        // share sheet — iOS drops "Save Image" if either one is missing or wrong.
+        return NextResponse.json({
+            url: signed.url,
+            filename: signed.filename,
+            contentType: signed.contentType,
+            variant: signed.variant,
         });
-
-        const url = await getSignedUrl(r2, command, { expiresIn: 60 });
-
-        return NextResponse.json({ url });
 
     } catch (error) {
         console.error('Download error:', error);

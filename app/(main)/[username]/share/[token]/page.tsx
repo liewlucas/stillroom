@@ -1,6 +1,7 @@
 import { getPayloadClient } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import { PublicGalleryView } from '@/components/public-gallery-view';
+import { HERO_SIGNED_URL_TTL_SECONDS, signPhotoUrl } from '@/lib/photo-urls';
 
 export const runtime = 'nodejs';
 
@@ -57,6 +58,15 @@ export default async function SharedGalleryPage({
         sort: 'createdAt',
     });
 
+    // The hero is the first photo in the album, signed here rather than fetched
+    // after hydration — it is the largest element on the page, so an extra client
+    // roundtrip before it can even start loading is the worst place to spend one.
+    // Nothing is cached across requests, so a short-lived signature is safe.
+    const heroPhoto = photos.docs[0];
+    const heroSigned = heroPhoto
+        ? await signPhotoUrl(heroPhoto, { variant: 'web', expiresIn: HERO_SIGNED_URL_TTL_SECONDS })
+        : null;
+
     return (
         <PublicGalleryView
             gallery={gallery}
@@ -65,6 +75,7 @@ export default async function SharedGalleryPage({
             photos={photos.docs as any[]}
             token={share.token as string}
             galleryId={String(gallery.id)}
+            hero={heroSigned ? { url: heroSigned.url } : null}
         />
     );
 }
